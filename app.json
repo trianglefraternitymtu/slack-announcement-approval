@@ -1,0 +1,8 @@
+{
+  "name": "Announcement Approval",
+  "description": "This is for teams where posting to the general channel has been restricted to team owners and/or admins. This would allow a user to have a message posted to the general channel after getting approval from an admin or another private channel.",
+  "image": "heroku/python",
+  "repository": "https://github.com/raveious/slack-announcement-approval",
+  "keywords": ["python", "django" ],
+  "addons": [ "heroku-postgresql" ]
+}
