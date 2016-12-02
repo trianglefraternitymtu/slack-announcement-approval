@@ -2,10 +2,11 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST, require_GET
-from slacker import OAuth, Slacker
+from slacker import OAuth, Slacker, BaseAPI
 from .models import Team
 from . import verified_token, error_msg
 import os
+import json
 import logging
 
 logger = logging.getLogger('basicLogger')
@@ -27,7 +28,7 @@ def auth(request):
     logger.debug(state)
 
     try:
-        data = OAuth().access(client_id, client_secret, code).__dict__['body']
+        data = OAuth().access(client_id, client_secret, code).body
         logger.debug(data)
     except Exception as e:
         logger.exception(e)
@@ -35,11 +36,11 @@ def auth(request):
 
     team_id = data['team_id']
     access_token = data['access_token']
-    slack = Slacker(access_token)
 
     if state is 'appAdded':
         logger.debug("Adding team \"{}\" to the database.".format(team_id))
 
+        slack = Slacker(access_token)
         channel_ids = [c['id'] for c in slack.channels.list().body['channels']]
         general = None
 
@@ -47,11 +48,12 @@ def auth(request):
             info = slack.channels.info(ch).body['channel']
             if info['is_general']:
                 general = info['name']
+                break
 
         # Make a new team
         new_team = Team.objects.create(access_token=access_token,
                                        team_id=team_id,
-                                       approval_channel=general,
+                                       approval_channel=None,
                                        post_channel=general)
 
         # TODO Make this start the signin process instead
@@ -64,6 +66,13 @@ def auth(request):
         except Exception as e:
             logger.exception(e)
             return JsonResponse(error_msg("Failed to import team data from DB."))
+
+        api = BaseAPI(access_token)
+        user_id = api.get('users.identity').body['user']['id']
+
+        if not team.approval_channel:
+            team.update(approval_channel=user_id)
+            team.save()
 
         # Go display it
         return redirect('slack-config', {'team': team})
@@ -115,8 +124,10 @@ def command(request):
     slack.chat.post_message(team.approval_channel,
         '<@{}> has made a request to post something to <#{}>'.format(user_id,
                                                             team.post_channel),
-        attachments={
+        attachments=[{
             'text':text,
+            'fallback':'<@{}> has made a request to post something to <#{}>'.format(user_id, team.post_channel),
+            'callback_id':user_id,
             'actions':[{
                 'name':'approve',
                 'text':'Approve',
@@ -129,7 +140,7 @@ def command(request):
                 'type':'button',
                 'value':'{} {}'.format(user_id, text)
             }]
-        })
+        }])
 
     # Respond to persons slash command
     response = {
@@ -152,13 +163,33 @@ def button_callback(request):
     token = request.POST.get('token')
 
     if not verified_token(token):
+        logger.warning("Token verification failed.")
         return HttpResponse(status=401)
 
     team_id = request.POST.get('team_id')
     callback_id = request.POST.get('callback_id')
     action = request.POST.get('actions')
+    org_msg = json.loads(request.POST.get('original_message'))
 
     logger.debug(team_id)
     logger.debug(callback_id)
+    logger.debug(action)
+    logger.debug(org_msg)
 
-    return JsonResponse(None)
+    # Pull this teams data out of the DB
+    try:
+        logger.debug("Getting data for \"{}\" out of the database".format(team_id))
+        team = Team.objects.get(team_id=team_id)
+    except Exception as e:
+        logger.exception(e)
+        return JsonResponse(error_msg("Failed to import team data from DB."))
+
+    logger.info("Team data loaded for " + team_id)
+
+    # slack = Slacker(team.access_token)
+
+    # because Heroku takes its damn sweet time re-starting a free web dyno
+    # we're going to do a chat.update instead of just responding
+    # slack.chat.update()
+
+    return HttpResponse(status=200)

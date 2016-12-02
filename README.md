@@ -19,6 +19,6 @@ Note: By default, only team admins and owners are allowed to edit the team confi
 Option | Default Value | Description
 :---|:---:|:---:
 Post channel | #general | The selected channel that is ultimatly trying to be posted too.
-Approval channel | #general | The channel where an post needs approval from. Typically a "Executive Board" kind of channel that is private.
+Approval channel | Person who added the app to the team | The channel where an post needs approval from. Typically a "Executive Board" kind of channel that is private.
 Admin only approval | True | In the channel that the request will be sent to, allow only a team admin to respond. This is for the case where there are both team admins and non-admins in the approval channel.
 Admin only login | True | Only an admin can change these settings. This can be disabled, but requires and team admin or owner to login to disable it.
