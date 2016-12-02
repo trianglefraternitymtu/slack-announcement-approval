@@ -37,10 +37,13 @@ def auth(request):
     team_id = data['team_id']
     access_token = data['access_token']
 
+    slack = Slacker(access_token)
+
     if state is 'appAdded':
         logger.debug("Adding team \"{}\" to the database.".format(team_id))
 
-        slack = Slacker(access_token)
+        user_id = data['user_id']
+
         channel_ids = [c['id'] for c in slack.channels.list().body['channels']]
         general = None
 
@@ -53,12 +56,14 @@ def auth(request):
         # Make a new team
         new_team = Team.objects.create(access_token=access_token,
                                        team_id=team_id,
-                                       approval_channel=None,
+                                       approval_channel=user_id,
                                        post_channel=general)
 
         # TODO Make this start the signin process instead
         return redirect('slack-config', {'team': new_team})
     elif state is "resumeSignIn":
+
+        user_id = data['user']['id']
 
         # Pull this teams data and events out of the DB
         try:
@@ -66,13 +71,6 @@ def auth(request):
         except Exception as e:
             logger.exception(e)
             return JsonResponse(error_msg("Failed to import team data from DB."))
-
-        api = BaseAPI(access_token)
-        user_id = api.get('users.identity').body['user']['id']
-
-        if not team.approval_channel:
-            team.update(approval_channel=user_id)
-            team.save()
 
         # Go display it
         return redirect('slack-config', {'team': team})
