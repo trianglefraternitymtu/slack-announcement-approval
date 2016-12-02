@@ -34,15 +34,15 @@ def auth(request):
         logger.exception(e)
         return redirect('slack-info')
 
-    team_id = data['team_id']
     access_token = data['access_token']
 
     slack = Slacker(access_token)
 
     if state is 'appAdded':
-        logger.debug("Adding team \"{}\" to the database.".format(team_id))
-
         user_id = data['user_id']
+        team_id = data['team_id']
+
+        logger.debug("Adding team \"{}\" to the database.".format(team_id))
 
         channel_ids = [c['id'] for c in slack.channels.list().body['channels']]
         general = None
@@ -64,6 +64,7 @@ def auth(request):
     elif state is "resumeSignIn":
 
         user_id = data['user']['id']
+        team_id = data['team']['id']
 
         # Pull this teams data and events out of the DB
         try:
