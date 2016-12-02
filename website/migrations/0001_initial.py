@@ -20,7 +20,7 @@ class Migration(migrations.Migration):
                 ('access_token', models.CharField(editable=False, max_length=30)),
                 ('post_channel', models.CharField(default=None, max_length=21)),
                 ('approval_channel', models.CharField(default=None, max_length=21)),
-                ('admin_only_approval', models.BooleanField(default=False)),
+                ('admin_only_approval', models.BooleanField(default=True)),
                 ('admin_only_edit', models.BooleanField(default=True)),
             ],
         ),

@@ -35,13 +35,24 @@ def auth(request):
 
     team_id = data['team_id']
     access_token = data['access_token']
+    slack = Slacker(access_token)
 
     if state is 'appAdded':
         logger.debug("Adding team \"{}\" to the database.".format(team_id))
 
+        channel_ids = [c['id'] for c in slack.channels.list().body['channels']]
+        general = None
+
+        for ch in channel_ids:
+            info = slack.channels.info(ch).body['channel']
+            if info['is_general']:
+                general = info['name']
+
         # Make a new team
         new_team = Team.objects.create(access_token=access_token,
-                                       team_id=team_id)
+                                       team_id=team_id,
+                                       approval_channel=general,
+                                       post_channel=general)
 
         # TODO Make this start the signin process instead
         return redirect('slack-config', {'team': new_team})
