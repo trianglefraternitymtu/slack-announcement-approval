@@ -73,6 +73,8 @@ def auth(request):
             logger.exception(e)
             return JsonResponse(error_msg("Failed to import team data from DB."))
 
+        logger.info("Team data loaded for " + team_id)
+
         # Go display it
         return redirect('slack-config', {'team': team})
     else:
@@ -131,12 +133,14 @@ def command(request):
                 'name':'approve',
                 'text':'Approve',
                 'type':'button',
+                'color':'good',
                 'value':'{} {}'.format(user_id, text)
             }, {
                 'name':'reject',
                 'text':'Reject',
                 'style':'danger',
                 'type':'button',
+                'color':'danger',
                 'value':'{} {}'.format(user_id, text)
             }]
         }])
