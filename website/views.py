@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST, require_GET
-from slacker import OAuth
+from slacker import OAuth, Slacker
 from .models import Team
 from . import verified_token, error_msg
 import os
@@ -37,13 +37,13 @@ def auth(request):
     access_token = data['access_token']
 
     if state is 'appAdded':
-        logger.debug("Adding team \"{}\" ({}) to the database.".format(
-                     team_id, type(team_id)))
+        logger.debug("Adding team \"{}\" to the database.".format(team_id))
 
         # Make a new team
         new_team = Team.objects.create(access_token=access_token,
                                        team_id=team_id)
 
+        # TODO Make this start the signin process instead
         return redirect('slack-config', {'team': new_team})
     elif state is "resumeSignIn":
 
@@ -85,6 +85,7 @@ def command(request):
         return HttpResponse(status=401)
 
     team_id = request.POST.get('team_id')
+    user_id = request.POST.get('user_id')
     text = request.POST.get('text')
 
     # Pull this teams data out of the DB
@@ -97,9 +98,33 @@ def command(request):
 
     logger.info("Team data loaded for " + team_id)
 
-    # TODO make a post to approval_channel with buttons
+    slack = Slacker(team.access_token)
 
-    # TODO respond to persons slash command, probably going to need to use response_url
+    # Make a post to approval_channel with buttons
+    slack.chat.post_message(team.approval_channel,
+        '<@{}> has made a request to post something to <#{}>'.format(user_id,
+                                                            team.post_channel),
+        attachments={
+            'text':text,
+            'actions':[{
+                'name':'approve',
+                'text':'Approve',
+                'type':'button',
+                'value':'{} {}'.format(user_id, text)
+            }, {
+                'name':'reject',
+                'text':'Reject',
+                'style':'danger',
+                'type':'button',
+                'value':'{} {}'.format(user_id, text)
+            }]
+        })
+
+    # Respond to persons slash command
+    response = {
+        'text':'Your post has been sent for approval.',
+        'response_type':'ephemeral'
+    }
 
     # Post response to Slack
     return JsonResponse(response)
