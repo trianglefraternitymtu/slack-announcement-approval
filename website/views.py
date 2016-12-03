@@ -82,6 +82,7 @@ def auth(request):
         # Go display it
         return redirect('slack-config', {'team': team})
     else:
+        logger.info('Unknown auth state passed.')
         return redirect('slack-info')
 
 def config(request):
