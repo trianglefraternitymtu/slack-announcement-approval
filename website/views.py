@@ -38,6 +38,9 @@ def auth(request):
 
     slack = Slacker(access_token)
 
+    for team in Team.objects.all():
+        logger.debug(team)
+
     if state is 'appAdded':
         user_id = data['user_id']
         team_id = data['team_id']
@@ -108,6 +111,9 @@ def command(request):
     team_id = request.POST.get('team_id')
     user_id = request.POST.get('user_id')
     text = request.POST.get('text')
+
+    for team in Team.objects.all():
+        logger.debug(team)
 
     # Pull this teams data out of the DB
     try:
