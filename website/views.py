@@ -37,6 +37,7 @@ def auth(request):
     access_token = data['access_token']
 
     slack = Slacker(access_token)
+    logger.info("Slack API interfaced")
 
     for team in Team.objects.all():
         logger.debug(team)
