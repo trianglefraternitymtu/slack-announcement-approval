@@ -25,7 +25,7 @@ def auth(request):
 
     logger.debug(request.GET)
     logger.debug(code)
-    logger.debug(state, type(state))
+    logger.debug(state)
 
     try:
         data = OAuth().access(client_id, client_secret, code).body
