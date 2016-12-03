@@ -25,7 +25,7 @@ def auth(request):
 
     logger.debug(request.GET)
     logger.debug(code)
-    logger.debug(state)
+    logger.debug(state, type(state))
 
     try:
         data = OAuth().access(client_id, client_secret, code).body
@@ -42,7 +42,7 @@ def auth(request):
     for team in Team.objects.all():
         logger.debug(team)
 
-    if state is 'appAdded':
+    if state == 'appAdded':
         user_id = data['user_id']
         team_id = data['team_id']
 
@@ -65,7 +65,7 @@ def auth(request):
 
         # TODO Make this start the signin process instead
         return redirect('slack-config', {'team': new_team})
-    elif state is "resumeSignIn":
+    elif state == "resumeSignIn":
 
         user_id = data['user']['id']
         team_id = data['team']['id']
