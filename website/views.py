@@ -11,6 +11,9 @@ import logging
 
 logger = logging.getLogger('basicLogger')
 
+add_app_scopes = ['command','users:read','channels:read','groups:read']
+signin_scopes = ['identity.basic','users:read','channels:read','groups:read']
+
 def info(request):
     return render(request, 'slack.html')
 
@@ -79,8 +82,7 @@ def auth(request):
             logger.exception(e)
             return redirect('slack-info')
 
-        # TODO Make this start the signin process instead
-        return redirect('slack-config', {'team': new_team})
+        return redirect('https://slack.com/oauth/authorize?scope={}&client_id={}&state=resumeSignIn'.format(','.join(signin_scopes), client_id))
     elif state == "resumeSignIn":
 
         user_id = data['user']['id']
