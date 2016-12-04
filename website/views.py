@@ -209,12 +209,12 @@ def button_callback(request):
         team_id = payload['team']['id']
         clicker_id = payload['user']
         callback_id = payload['callback_id']
-        action = payload['actions']
+        action = payload['actions'][0]
         org_msg = payload['original_message']
         click_ts = payload['action_ts']
+        msg_ts = payload['message_ts']
         org_channel = payload['channel']['id']
 
-        msg_ts = action['ts']
 
         logger.debug(team_id)
         logger.debug(clicker_id)
