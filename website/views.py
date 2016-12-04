@@ -70,7 +70,7 @@ def auth(request):
 
         # Make a new team
         try:
-            new_team = Team.objects.create(access_token=access_token,
+            new_team = Team.objects.update_or_create(access_token=access_token,
                                            team_id=team_id,
                                            approval_channel=user_id,
                                            post_channel=general)
