@@ -208,7 +208,7 @@ def button_callback(request):
     team_id = payload['team']['id']
     clicker_id = payload['user']
     callback_id = payload['callback_id']
-    action = payload['actions'][0]
+    action = payload['actions']
     org_msg = payload['original_message']
     click_ts = payload['action_ts']
     org_channel = payload['channel']['id']
