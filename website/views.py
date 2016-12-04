@@ -241,7 +241,7 @@ def button_callback(request):
     if action['name'] == 'approve':
         org_msg['attachments'][0]['footer'] = ":ok_hand: <@{}> approved this message.".format(clicker_id)
     elif action['name'] == 'reject':
-        org_msg['attachments'][0]['footer'] = ":middle_finger: <@{}> rejected this message.".format(clicker_id)
+        org_msg['attachments'][0]['footer'] = ":no_entry_sign: <@{}> rejected this message.".format(clicker_id)
     else:
         return HttpResponse(status=403)
 
