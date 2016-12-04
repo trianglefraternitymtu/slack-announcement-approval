@@ -121,8 +121,7 @@ def command(request):
     token = request.POST.get('token')
 
     if not verified_token(token):
-        logger.debug(token)
-        logger.warning("Token verification failed.")
+        logger.warning("Token verification failed. ({})".format(token))
         return HttpResponse(status=401)
 
     team_id = request.POST.get('team_id')
@@ -193,11 +192,12 @@ def button_callback(request):
     https://api.slack.com/docs/message-buttons
     """
     logger.info('Button Callback')
+    logger.debug(request.POST)
 
     token = request.POST.get('token')
 
     if not verified_token(token):
-        logger.warning("Token verification failed.")
+        logger.warning("Token verification failed. ({})".format(token))
         return HttpResponse(status=401)
 
     team_id = request.POST.get('team_id')
