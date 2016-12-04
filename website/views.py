@@ -239,15 +239,14 @@ def button_callback(request):
 
     # Update the message
     if action['name'] == 'approve':
-        org_msg['footer'] = ":ok_hand: <@{}> approved this message.".format(clicker_id)
+        org_msg['attachments'][0]['footer'] = ":ok_hand: <@{}> approved this message.".format(clicker_id)
     elif action['name'] == 'reject':
-        org_msg['footer'] = ":middle_finger: <@{}> rejected this message.".format(clicker_id)
+        org_msg['attachments'][0]['footer'] = ":middle_finger: <@{}> rejected this message.".format(clicker_id)
     else:
         return HttpResponse(status=403)
 
-    org_msg['attachments']['ts'] = click_ts
-    org_msg['attachments']['mrkdwn_in'] = ['text']
-    org_msg['attachments'].pop('actions', None)
+    org_msg['attachments'][0]['ts'] = click_ts
+    org_msg['attachments'][0].pop('actions', None)
 
     logger.debug(org_msg)
 
