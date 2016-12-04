@@ -167,6 +167,8 @@ def command(request):
             }]
         }])
 
+    logger.info("Approval request posted to {}".format(team.approval_channel))
+
     # Respond to persons slash command
     response = {
         'text':'Your post has been sent for approval.',
