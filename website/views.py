@@ -160,7 +160,7 @@ def command(request):
                     'name':'approve',
                     'text':'Approve',
                     'type':'button',
-                    'color':'good',
+                    'color':'primary',
                     'value':'{} {}'.format(user_id, text)
                 }, {
                     'name':'reject',
@@ -204,10 +204,10 @@ def button_callback(request):
         logger.warning("Token verification failed. ({})".format(token))
         return HttpResponse(status=401)
 
-    team_id = payload.get('team_id')
-    callback_id = payload.get('callback_id')
-    action = payload.get('actions')
-    org_msg = payload.get('original_message')
+    team_id = payload['team']['id']
+    callback_id = payload['callback_id']
+    action = payload['actions']
+    org_msg = payload['original_message']
 
     logger.debug(team_id)
     logger.debug(callback_id)
