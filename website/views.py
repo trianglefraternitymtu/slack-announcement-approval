@@ -129,9 +129,6 @@ def command(request):
     user_id = request.POST.get('user_id')
     text = request.POST.get('text')
 
-    for team in Team.objects.all():
-        logger.debug(team)
-
     # Pull this teams data out of the DB
     try:
         logger.debug("Getting data for \"{}\" out of the database".format(team_id))
@@ -143,6 +140,8 @@ def command(request):
     logger.info("Team data loaded for " + team_id)
 
     slack = Slacker(team.access_token)
+
+    logger.info("Slack API interfaced")
 
     # Make a post to approval_channel with buttons
     slack.chat.post_message(team.approval_channel,
