@@ -150,6 +150,7 @@ def command(request):
         slack.chat.post_message(team.approval_channel,
             '<@{}> has made a request to post something to <#{}>'.format(user_id,
                                                                 team.post_channel),
+            as_user=False,
             attachments=[{
                 'text':text,
                 'fallback':'<@{}> has made a request to post something to <#{}>'.format(user_id, team.post_channel),
@@ -194,16 +195,18 @@ def button_callback(request):
     logger.info('Button Callback')
     logger.debug(request.POST)
 
-    token = request.POST.get('token')
+    payload = json.loads(request.POST.get('payload'))
+
+    token = payload.get('token')
 
     if not verified_token(token):
         logger.warning("Token verification failed. ({})".format(token))
         return HttpResponse(status=401)
 
-    team_id = request.POST.get('team_id')
-    callback_id = request.POST.get('callback_id')
-    action = request.POST.get('actions')
-    org_msg = json.loads(request.POST.get('original_message'))
+    team_id = payload.get('team_id')
+    callback_id = payload.get('callback_id')
+    action = payload.get('actions')
+    org_msg = payload.get('original_message')
 
     logger.debug(team_id)
     logger.debug(callback_id)
