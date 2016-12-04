@@ -153,9 +153,10 @@ def command(request):
             as_user=False,
             attachments=[{
                 'text':text,
+                'pretext':'Message body:',
                 'fallback':'<@{}> has made a request to post something to <#{}>'.format(user_id, team.post_channel),
                 'callback_id':user_id,
-                'mrkdown_in':['text'],
+                'mrkdwn_in':['text'],
                 'actions':[{
                     'name':'approve',
                     'text':'Approve',
@@ -205,11 +206,17 @@ def button_callback(request):
         return HttpResponse(status=401)
 
     team_id = payload['team']['id']
+    clicker_id = payload['user']
     callback_id = payload['callback_id']
-    action = payload['actions']
+    action = payload['actions'][0]
     org_msg = payload['original_message']
+    click_ts = payload['action_ts']
+    org_channel = payload['channel']['id']
+
+    msg_ts = action['ts']
 
     logger.debug(team_id)
+    logger.debug(clicker_id)
     logger.debug(callback_id)
     logger.debug(action)
     logger.debug(org_msg)
@@ -218,16 +225,33 @@ def button_callback(request):
     try:
         logger.debug("Getting data for \"{}\" out of the database".format(team_id))
         team = Team.objects.get(team_id=team_id)
+        logger.info("Team data loaded for " + team_id)
     except Exception as e:
         logger.exception(e)
         return JsonResponse(error_msg("Failed to import team data from DB."))
 
-    logger.info("Team data loaded for " + team_id)
-
-    # slack = Slacker(team.access_token)
+    try:
+        slack = Slacker(team.access_token)
+        logger.info("Slack API interfaced")
+    except Exception as e:
+        logger.exception(e)
+        return JsonResponse(error_msg("Slack API not initialized."))
 
     # because Heroku takes its damn sweet time re-starting a free web dyno
     # we're going to do a chat.update instead of just responding
-    # slack.chat.update()
+
+    # Update the message
+    if action['name'] == 'approve':
+        org_msg['footer'] = ":ok_hand: <@{}> approved this message.".format(clicker_id)
+    if action['name'] == 'reject':
+        org_msg['footer'] = ":middle_finger: <@{}> rejected this message.".format(clicker_id)
+
+    org_msg['attachments']['ts'] = click_ts
+    org_msg['attachments']['mrkdwn_in'] = ['text']
+    org_msg['attachments'].pop('actions')
+
+    # Pushing updated message
+    slack.chat.update(org_channel, msg_ts, org_msg['text'],
+                      attachments=org_msg['attachments'])
 
     return HttpResponse(status=200)
