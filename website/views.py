@@ -195,9 +195,9 @@ def button_callback(request):
     https://api.slack.com/docs/message-buttons
     """
     logger.info('Button Callback')
-    logger.debug(request.POST)
 
     payload = json.loads(request.POST.get('payload'))
+    logger.debug(payload)
 
     token = payload.get('token')
 
@@ -206,18 +206,15 @@ def button_callback(request):
         return HttpResponse(status=401)
 
     team_id = payload['team']['id']
-    clicker_id = payload['user']
-    callback_id = payload['callback_id']
+    clicker_id = payload['user']['id']
     action = payload['actions'][0]
     org_msg = payload['original_message']
     click_ts = payload['action_ts']
     msg_ts = payload['message_ts']
     org_channel = payload['channel']['id']
 
-
     logger.debug(team_id)
     logger.debug(clicker_id)
-    logger.debug(callback_id)
     logger.debug(action)
     logger.debug(org_msg)
 
@@ -243,12 +240,14 @@ def button_callback(request):
     # Update the message
     if action['name'] == 'approve':
         org_msg['footer'] = ":ok_hand: <@{}> approved this message.".format(clicker_id)
-    if action['name'] == 'reject':
+    elif action['name'] == 'reject':
         org_msg['footer'] = ":middle_finger: <@{}> rejected this message.".format(clicker_id)
+    else:
+        return HttpResponse(status=403)
 
     org_msg['attachments']['ts'] = click_ts
     org_msg['attachments']['mrkdwn_in'] = ['text']
-    org_msg['attachments'].pop('actions')
+    org_msg['attachments'].pop('actions', None)
 
     logger.debug(org_msg)
 
@@ -259,5 +258,15 @@ def button_callback(request):
     except Exception as e:
         logger.exception(e)
         return JsonResponse(error_msg("Something bad happened while posting an update."))
+
+    # Push approved announcement out
+    # try:
+    #     if action['name'] == approve:
+    #
+    #
+    #     slack.chat.post_message()
+    # except Exception as e:
+    #     logger.exception(e)
+    #     return JsonResponse(error_msg("Failed to post announcement."))
 
     return HttpResponse(status=200)
