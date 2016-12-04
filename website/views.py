@@ -139,35 +139,42 @@ def command(request):
 
     logger.info("Team data loaded for " + team_id)
 
-    slack = Slacker(team.access_token)
+    try:
+        slack = Slacker(team.access_token)
+        logger.info("Slack API interfaced")
+    except Exception as e:
+        logger.exception(e)
+        return JsonResponse(error_msg("Slack API not initialized."))
 
-    logger.info("Slack API interfaced")
+    try:
+        # Make a post to approval_channel with buttons
+        slack.chat.post_message(team.approval_channel,
+            '<@{}> has made a request to post something to <#{}>'.format(user_id,
+                                                                team.post_channel),
+            attachments=[{
+                'text':text,
+                'fallback':'<@{}> has made a request to post something to <#{}>'.format(user_id, team.post_channel),
+                'callback_id':user_id,
+                'actions':[{
+                    'name':'approve',
+                    'text':'Approve',
+                    'type':'button',
+                    'color':'good',
+                    'value':'{} {}'.format(user_id, text)
+                }, {
+                    'name':'reject',
+                    'text':'Reject',
+                    'style':'danger',
+                    'type':'button',
+                    'color':'danger',
+                    'value':'{} {}'.format(user_id, text)
+                }]
+            }])
 
-    # Make a post to approval_channel with buttons
-    slack.chat.post_message(team.approval_channel,
-        '<@{}> has made a request to post something to <#{}>'.format(user_id,
-                                                            team.post_channel),
-        attachments=[{
-            'text':text,
-            'fallback':'<@{}> has made a request to post something to <#{}>'.format(user_id, team.post_channel),
-            'callback_id':user_id,
-            'actions':[{
-                'name':'approve',
-                'text':'Approve',
-                'type':'button',
-                'color':'good',
-                'value':'{} {}'.format(user_id, text)
-            }, {
-                'name':'reject',
-                'text':'Reject',
-                'style':'danger',
-                'type':'button',
-                'color':'danger',
-                'value':'{} {}'.format(user_id, text)
-            }]
-        }])
-
-    logger.info("Approval request posted to {}".format(team.approval_channel))
+        logger.info("Approval request posted to {}".format(team.approval_channel))
+    except Exception as e:
+        logger.exception(e)
+        return JsonResponse(error_msg("Approval post failed."))
 
     # Respond to persons slash command
     response = {
