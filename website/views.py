@@ -48,21 +48,25 @@ def auth(request):
 
         logger.debug("Adding team \"{}\" to the database.".format(team_id))
 
-        ch_list = slack.channels.list().body['channels']
-        ch_ids = [c['id'] for c in ch_list]
+        try:
+            ch_list = slack.channels.list().body['channels']
+            logger.debug(ch_list)
 
-        logger.debug(ch_list)
-        logger.debug(ch_ids)
+            ch_ids = [c['id'] for c in ch_list]
+            logger.debug(ch_ids)
 
-        general = None
+            general = None
 
-        for ch in ch_ids:
-            info = slack.channels.info(ch).body['channel']
-            if info['is_general']:
-                general = info['id']
-                break
+            for ch in ch_ids:
+                info = slack.channels.info(ch).body['channel']
+                if info['is_general']:
+                    general = info['id']
+                    break
 
-        logger.debug("The general channel for team {} has id {}".format(team_id, general))
+            logger.debug("The general channel for team {} has id {}".format(team_id, general))
+        except Exception as e:
+            logger.exception(e)
+            return redirect('slack-info')
 
         # Make a new team
         new_team = Team.objects.create(access_token=access_token,
