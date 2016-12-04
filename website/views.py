@@ -155,6 +155,7 @@ def command(request):
                 'text':text,
                 'fallback':'<@{}> has made a request to post something to <#{}>'.format(user_id, team.post_channel),
                 'callback_id':user_id,
+                'mrkdown_in':['text'],
                 'actions':[{
                     'name':'approve',
                     'text':'Approve',
