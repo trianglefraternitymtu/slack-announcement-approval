@@ -11,9 +11,6 @@ import logging
 
 logger = logging.getLogger('basicLogger')
 
-add_app_scopes = ['command','users:read','channels:read','groups:read']
-signin_scopes = ['identity.basic','users:read','channels:read','groups:read']
-
 def info(request):
     return render(request, 'slack.html')
 
@@ -82,7 +79,7 @@ def auth(request):
             logger.exception(e)
             return redirect('slack-info')
 
-        return redirect('https://slack.com/oauth/authorize?scope={}&client_id={}&state=resumeSignIn'.format(','.join(signin_scopes), client_id))
+        return redirect('https://slack.com/oauth/authorize?scope=identity.basic&client_id={}&state=resumeSignIn'.format(client_id))
     elif state == "resumeSignIn":
 
         user_id = data['user']['id']
