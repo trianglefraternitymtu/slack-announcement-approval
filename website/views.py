@@ -50,10 +50,10 @@ def auth(request):
 
         try:
             ch_list = slack.channels.list().body['channels']
-            logger.debug(ch_list)
+            # logger.debug(ch_list)
 
             ch_ids = [c['id'] for c in ch_list]
-            logger.debug(ch_ids)
+            # logger.debug(ch_ids)
 
             general = None
 
@@ -63,16 +63,21 @@ def auth(request):
                     general = info['id']
                     break
 
-            logger.debug("The general channel for team {} has id {}".format(team_id, general))
+            logger.info("The general channel for team {} has id {}".format(team_id, general))
         except Exception as e:
             logger.exception(e)
             return redirect('slack-info')
 
         # Make a new team
-        new_team = Team.objects.create(access_token=access_token,
-                                       team_id=team_id,
-                                       approval_channel=user_id,
-                                       post_channel=general)
+        try:
+            new_team = Team.objects.create(access_token=access_token,
+                                           team_id=team_id,
+                                           approval_channel=user_id,
+                                           post_channel=general)
+            logger.info("Team added to database!")
+        except Exception as e:
+            logger.exception(e)
+            return redirect('slack-info')
 
         # TODO Make this start the signin process instead
         return redirect('slack-config', {'team': new_team})
