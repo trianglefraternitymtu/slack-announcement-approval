@@ -143,7 +143,7 @@ def command(request):
         logger.info("Slack API interfaced")
     except Exception as e:
         logger.exception(e)
-        return JsonResponse(error_msg("Slack API not initialized."))
+        return JsonResponse(error_msg("Slack API not initialized. Might want to try re-adding this app."))
 
     try:
         # Make a post to approval_channel with buttons
@@ -199,31 +199,27 @@ def button_callback(request):
 
     payload = json.loads(request.POST.get('payload'))
 
-    try:
-        token = payload.get('token')
+    token = payload.get('token')
 
-        if not verified_token(token):
-            logger.warning("Token verification failed. ({})".format(token))
-            return HttpResponse(status=401)
+    if not verified_token(token):
+        logger.warning("Token verification failed. ({})".format(token))
+        return HttpResponse(status=401)
 
-        team_id = payload['team']['id']
-        clicker_id = payload['user']
-        callback_id = payload['callback_id']
-        action = payload['actions'][0]
-        org_msg = payload['original_message']
-        click_ts = payload['action_ts']
-        msg_ts = payload['message_ts']
-        org_channel = payload['channel']['id']
+    team_id = payload['team']['id']
+    clicker_id = payload['user']
+    callback_id = payload['callback_id']
+    action = payload['actions'][0]
+    org_msg = payload['original_message']
+    click_ts = payload['action_ts']
+    msg_ts = payload['message_ts']
+    org_channel = payload['channel']['id']
 
 
-        logger.debug(team_id)
-        logger.debug(clicker_id)
-        logger.debug(callback_id)
-        logger.debug(action)
-        logger.debug(org_msg)
-    except Exception as e:
-        logger.exception(e)
-        return JsonResponse(error_msg("Failed to parse data from button request."))
+    logger.debug(team_id)
+    logger.debug(clicker_id)
+    logger.debug(callback_id)
+    logger.debug(action)
+    logger.debug(org_msg)
 
     # Pull this teams data out of the DB
     try:
@@ -239,7 +235,7 @@ def button_callback(request):
         logger.info("Slack API interfaced")
     except Exception as e:
         logger.exception(e)
-        return JsonResponse(error_msg("Slack API not initialized."))
+        return JsonResponse(error_msg("Slack API not initialized. Might want to try re-adding this app."))
 
     # because Heroku takes its damn sweet time re-starting a free web dyno
     # we're going to do a chat.update instead of just responding
@@ -254,8 +250,14 @@ def button_callback(request):
     org_msg['attachments']['mrkdwn_in'] = ['text']
     org_msg['attachments'].pop('actions')
 
+    logger.debug(org_msg)
+
     # Pushing updated message
-    slack.chat.update(org_channel, msg_ts, org_msg['text'],
-                      attachments=org_msg['attachments'])
+    try:
+        slack.chat.update(org_channel, msg_ts, org_msg['text'],
+            attachments=org_msg['attachments'])
+    except Exception as e:
+        logger.exception(e)
+        return JsonResponse(error_msg("Something bad happened while posting an update."))
 
     return HttpResponse(status=200)
