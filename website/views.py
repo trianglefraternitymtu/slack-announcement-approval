@@ -199,27 +199,31 @@ def button_callback(request):
 
     payload = json.loads(request.POST.get('payload'))
 
-    token = payload.get('token')
+    try:
+        token = payload.get('token')
 
-    if not verified_token(token):
-        logger.warning("Token verification failed. ({})".format(token))
-        return HttpResponse(status=401)
+        if not verified_token(token):
+            logger.warning("Token verification failed. ({})".format(token))
+            return HttpResponse(status=401)
 
-    team_id = payload['team']['id']
-    clicker_id = payload['user']
-    callback_id = payload['callback_id']
-    action = payload['actions']
-    org_msg = payload['original_message']
-    click_ts = payload['action_ts']
-    org_channel = payload['channel']['id']
+        team_id = payload['team']['id']
+        clicker_id = payload['user']
+        callback_id = payload['callback_id']
+        action = payload['actions']
+        org_msg = payload['original_message']
+        click_ts = payload['action_ts']
+        org_channel = payload['channel']['id']
 
-    msg_ts = action['ts']
+        msg_ts = action['ts']
 
-    logger.debug(team_id)
-    logger.debug(clicker_id)
-    logger.debug(callback_id)
-    logger.debug(action)
-    logger.debug(org_msg)
+        logger.debug(team_id)
+        logger.debug(clicker_id)
+        logger.debug(callback_id)
+        logger.debug(action)
+        logger.debug(org_msg)
+    except Exception as e:
+        logger.exception(e)
+        return JsonResponse(error_msg("Failed to parse data from button request."))
 
     # Pull this teams data out of the DB
     try:
