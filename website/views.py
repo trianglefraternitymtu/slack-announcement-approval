@@ -283,7 +283,6 @@ def button_callback(request):
             post_response['icon_url'] = requester['profile']['image_192']
             post_response['text'] = action['value'][1]
             post_response['as_user'] = False
-            post_response
 
         elif action['name'] == 'reject':
             post_response['text'] = 'Your announcement request has been rejected.'
