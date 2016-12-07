@@ -78,7 +78,7 @@ def auth(request):
         return redirect('https://slack.com/oauth/authorize?scope=identity.basic&client_id={}&state=resumeSignIn'.format(client_id))
     elif state == "resumeSignIn":
 
-        user = slack.user.info(data['user']['id']).body['user']
+        user = slack.users.info(data['user']['id']).body['user']
         is_admin = user['is_admin'] or user['is_owner']
         team_id = data['team']['id']
 
