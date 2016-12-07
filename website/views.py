@@ -94,10 +94,13 @@ def auth(request):
 
         logger.info("Team data loaded for " + team_id)
 
+        priv_ch = {g['name']:g['id'] for g in slack.groups.list().body['groups']}
+        pub_ch = {c['name']:c['id'] for c in slack.channels.list().body['channels']}
+
         # Go display it
-        return redirect('slack-config', {'team': team})
+        return redirect('slack-config', {'team': team, 'priv_ch':priv_ch, 'pub_ch':pub_ch})
     else:
-        logger.info('Unknown auth state passed.')
+        logger.warning('Unknown auth state passed.')
         return redirect('slack-info')
 
 def config(request):
@@ -213,6 +216,8 @@ def button_callback(request):
     msg_ts = payload['message_ts']
     org_channel = payload['channel']['id']
 
+    action['value'] = action['value'].split(' ', 1)
+
     logger.debug(team_id)
     logger.debug(clicker_id)
     logger.debug(action)
@@ -241,7 +246,7 @@ def button_callback(request):
     if action['name'] == 'approve':
         org_msg['attachments'][0]['footer'] = ":ok_hand: <@{}> approved this message.".format(clicker_id)
     elif action['name'] == 'reject':
-        org_msg['attachments'][0]['footer'] = ":no_entry_sign: <@{}> rejected this message.".format(clicker_id)
+        org_msg['attachments'][0]['footer'] = ":no_entry: <@{}> rejected this message.".format(clicker_id)
     else:
         return HttpResponse(status=403)
 
@@ -259,13 +264,33 @@ def button_callback(request):
         return JsonResponse(error_msg("Something bad happened while posting an update."))
 
     # Push approved announcement out
-    # try:
-    #     if action['name'] == approve:
-    #
-    #
-    #     slack.chat.post_message()
-    # except Exception as e:
-    #     logger.exception(e)
-    #     return JsonResponse(error_msg("Failed to post announcement."))
+    try:
+        post_response = {}
+        if action['name'] == 'approve':
+            post_response['channel'] = team.post_channel
+            post_response['username'] = action['value'][0]
+            post_response['text'] = action['value'][1]
+            post_response['as_user'] = True
+
+        elif action['name'] == 'reject':
+            post_response['text'] = 'Your announcement request has been rejected.'
+            post_response['channel'] = action['value'][0]
+            post_response['attachments'] = [{
+                    'text':action['value'][1],
+                    'pretext':'Message body:',
+                    'fallback':'<@{}> has rejected your post <#{}>'.format(clicker_id, team.post_channel),
+                    'mrkdwn_in':['text'],
+                    'ts':click_ts,
+                    'footer':":no_entry: <@{}> rejected this message.".format(clicker_id)
+                }]
+
+        else:
+            logger.warning("Unknown response from a button was received.")
+            return JsonResponse(error_msg("Something bad happened while posting an update."))
+
+        slack.chat.post_message(**post_response)
+    except Exception as e:
+        logger.exception(e)
+        return JsonResponse(error_msg("Failed to post announcement."))
 
     return HttpResponse(status=200)
