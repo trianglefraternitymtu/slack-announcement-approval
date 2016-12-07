@@ -288,6 +288,8 @@ def button_callback(request):
             logger.warning("Unknown response from a button was received.")
             return JsonResponse(error_msg("Something bad happened while posting an update."))
 
+        logger.debug("Posting a button response:")
+        logger.debug(post_response)
         slack.chat.post_message(**post_response)
     except Exception as e:
         logger.exception(e)
