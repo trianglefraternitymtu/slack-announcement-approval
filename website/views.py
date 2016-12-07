@@ -69,28 +69,31 @@ def auth(request):
             return redirect('slack-info')
 
         # Make a new team
-        try:
-            new_team = Team.objects.update_or_create(access_token=access_token,
-                                           team_id=team_id,
-                                           approval_channel=user_id,
-                                           post_channel=general)
-            logger.info("Team added to database!")
-        except Exception as e:
-            logger.exception(e)
-            return redirect('slack-info')
+        new_team = Team.objects.update_or_create(access_token=access_token,
+                                       team_id=team_id,
+                                       approval_channel=user_id,
+                                       post_channel=general)
+        logger.info("Team added to database!")
 
         return redirect('https://slack.com/oauth/authorize?scope=identity.basic&client_id={}&state=resumeSignIn'.format(client_id))
     elif state == "resumeSignIn":
 
-        user_id = data['user']['id']
+        user = slack.user.info(data['user']['id']).body['user']
+        is_admin = user['is_admin'] or user['is_owner']
         team_id = data['team']['id']
+
+        if not is_admin and team.admin_only_edit:
+            logger.info("Signin requires an admin and wasn't.")
+            # TODO Make slack-info post a dialog about not being an admin
+            return redirect('slack-info')
 
         # Pull this teams data and events out of the DB
         try:
             team = Team.objects.get(team_id=team_id)
         except Exception as e:
             logger.exception(e)
-            return JsonResponse(error_msg("Failed to import team data from DB."))
+            # TODO Make slack-info post a dialog about not being able to login
+            return redirect('slack-info')
 
         logger.info("Team data loaded for " + team_id)
 
@@ -98,7 +101,8 @@ def auth(request):
         pub_ch = {c['name']:c['id'] for c in slack.channels.list().body['channels']}
 
         # Go display it
-        return redirect('slack-config', {'team': team, 'priv_ch':priv_ch, 'pub_ch':pub_ch})
+        return redirect('slack-config', {'team': team, 'priv_ch':priv_ch,
+                                         'pub_ch':pub_ch, 'admin':is_admin})
     else:
         logger.warning('Unknown auth state passed.')
         return redirect('slack-info')
