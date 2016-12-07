@@ -151,7 +151,7 @@ def command(request):
     try:
         # Make a post to approval_channel with buttons
         slack.chat.post_message(team.approval_channel,
-            '<@{}> has made a request to post something to <#{}>'.format(user_id,
+            '<@{}> has made a request to post a message to <#{}>'.format(user_id,
                                                                 team.post_channel),
             as_user=False,
             attachments=[{
