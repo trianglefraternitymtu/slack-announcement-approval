@@ -239,7 +239,7 @@ def button_callback(request):
     try:
         slack = Slacker(team.access_token)
         clicker = slack.users.info(clicker).body['user']
-        requester = slack.users.info(action['value'][0])
+        requester = slack.users.info(action['value'][0]).body['user']
         logger.info("Slack API interfaced")
     except Exception as e:
         logger.exception(e)
