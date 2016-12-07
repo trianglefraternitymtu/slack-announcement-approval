@@ -209,7 +209,7 @@ def button_callback(request):
         return HttpResponse(status=401)
 
     team_id = payload['team']['id']
-    clicker_id = payload['user']['id']
+    clicker = payload['user']['id']
     action = payload['actions'][0]
     org_msg = payload['original_message']
     click_ts = payload['action_ts']
@@ -219,7 +219,7 @@ def button_callback(request):
     action['value'] = action['value'].split(' ', 1)
 
     logger.debug(team_id)
-    logger.debug(clicker_id)
+    logger.debug(clicker)
     logger.debug(action)
     logger.debug(org_msg)
 
@@ -234,19 +234,25 @@ def button_callback(request):
 
     try:
         slack = Slacker(team.access_token)
+        clicker = slack.users.info(clicker).body['user']
         logger.info("Slack API interfaced")
     except Exception as e:
         logger.exception(e)
         return JsonResponse(error_msg("Slack API not initialized. Might want to try re-adding this app."))
+
+    # if not an admin or an owner, and "Admin only approval" is required
+    if not (clicker['is_admin'] or clicker['is_owner']) and team.admin_only_approval:
+        logger.info("Clicker needs to be an admin and wasn't.")
+        return HttpResponse(status=200)
 
     # because Heroku takes its damn sweet time re-starting a free web dyno
     # we're going to do a chat.update instead of just responding
 
     # Update the message
     if action['name'] == 'approve':
-        org_msg['attachments'][0]['footer'] = ":ok_hand: <@{}> approved this message.".format(clicker_id)
+        org_msg['attachments'][0]['footer'] = ":ok_hand: <@{}> approved this message.".format(clicker['id'])
     elif action['name'] == 'reject':
-        org_msg['attachments'][0]['footer'] = ":no_entry: <@{}> rejected this message.".format(clicker_id)
+        org_msg['attachments'][0]['footer'] = ":no_entry_sign: <@{}> rejected this message.".format(clicker['id'])
     else:
         return HttpResponse(status=403)
 
@@ -278,10 +284,10 @@ def button_callback(request):
             post_response['attachments'] = [{
                     'text':action['value'][1],
                     'pretext':'Message body:',
-                    'fallback':'<@{}> has rejected your post <#{}>'.format(clicker_id, team.post_channel),
+                    'fallback':'<@{}> has rejected your post <#{}>'.format(clicker['id'], team.post_channel),
                     'mrkdwn_in':['text'],
                     'ts':click_ts,
-                    'footer':":no_entry: <@{}> rejected this message.".format(clicker_id)
+                    'footer':":no_entry_sign: <@{}> rejected this message.".format(clicker['id'])
                 }]
 
         else:
