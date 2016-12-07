@@ -239,6 +239,7 @@ def button_callback(request):
     try:
         slack = Slacker(team.access_token)
         clicker = slack.users.info(clicker).body['user']
+        requester = slack.users.info(action['value'][0])
         logger.info("Slack API interfaced")
     except Exception as e:
         logger.exception(e)
@@ -278,9 +279,11 @@ def button_callback(request):
         post_response = {}
         if action['name'] == 'approve':
             post_response['channel'] = team.post_channel
-            post_response['username'] = action['value'][0]
+            post_response['username'] = requester['profile']['real_name']
+            post_response['icon_url'] = requester['profile']['image_192']
             post_response['text'] = action['value'][1]
-            post_response['as_user'] = True
+            post_response['as_user'] = False
+            post_response
 
         elif action['name'] == 'reject':
             post_response['text'] = 'Your announcement request has been rejected.'
