@@ -76,7 +76,8 @@ def auth(request):
         new_team = Team.objects.update_or_create(access_token=access_token,
                                        team_id=team_id,
                                        approval_channel=user_id,
-                                       post_channel=general)
+                                       post_channel=general,
+                                       last_edit=user_id)
         logger.info("Team added to database!")
 
         return redirect('https://slack.com/oauth/authorize?scope=identity.basic&client_id={}&state=resumeSignIn'.format(client_id))
