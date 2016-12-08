@@ -6,7 +6,7 @@ install:
   - pip install pylint
   # - pip install nose
 script:
-  - pylint --errors-only website
   - pylint --errors-only server
-  # - nosetests
+  - pylint --errors-only website
   # - ./manage.py test
+  # - nosetests

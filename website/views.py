@@ -12,7 +12,11 @@ import logging
 logger = logging.getLogger('basicLogger')
 
 def info(request):
-    return render(request, 'slack.html')
+    return render(request, 'index.html')
+
+
+def privacy(request):
+    return render(request, 'privacy.html')
 
 @require_GET
 def auth(request):
