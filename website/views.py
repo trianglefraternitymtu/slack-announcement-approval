@@ -14,7 +14,6 @@ logger = logging.getLogger('basicLogger')
 def info(request):
     return render(request, 'index.html')
 
-
 def privacy(request):
     return render(request, 'privacy.html')
 
