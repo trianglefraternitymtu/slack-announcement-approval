@@ -45,7 +45,7 @@ This example was made using `/announce This is the *body* of a request :clap:`
 
 Once the post has been approved or rejected, the prompt will update to record who addressed it and when it was addressed.
 
-### Decision response
+### Processed response
 
 If the message was rejected, the individual who make the initial request will get this message to inform them that their announcement won't be made.
 
