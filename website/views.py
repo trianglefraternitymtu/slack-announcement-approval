@@ -97,18 +97,17 @@ def auth(request):
 
         logger.info("Team data loaded for " + team_id)
 
-        # Go config display it
-        return redirect('slack-config', team_id=team_id)
+        try:
+            form = TeamSettingsForm(team)
+
+            # Go config display it
+            return render(request, 'config.html', {'form':form})
+        except Exception as e:
+            logger.exception(e)
+            return redirect('slack-info')
     else:
         logger.warning('Unknown auth state passed.')
         return redirect('slack-info')
-
-def config(request, team_id):
-    logger.info("Loading config menu for {}".format(team_id))
-    team = Team.objects.get(team_id=team_id)
-    form = TeamSettingsForm(team)
-
-    return render(request, 'config.html', {'form':form})
 
 @csrf_exempt
 @require_POST
