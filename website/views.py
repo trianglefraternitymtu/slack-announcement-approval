@@ -3,13 +3,14 @@ from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST, require_GET
 
-from slacker import OAuth, Slacker, BaseAPI
+from slacker import OAuth, Slacker
 
 import os
 import json
 import logging
 
 from .models import Team
+from .forms import TeamSettingsForm
 from . import verified_token, error_msg
 
 logger = logging.getLogger('basicLogger')
@@ -45,34 +46,27 @@ def auth(request):
     slack = Slacker(access_token)
     logger.info("Slack API interfaced")
 
-    for team in Team.objects.all():
-        logger.debug(team)
-
     if state == 'appAdded':
         user_id = data['user_id']
         team_id = data['team_id']
 
         logger.debug("Adding team \"{}\" to the database.".format(team_id))
 
-        try:
-            ch_list = slack.channels.list().body['channels']
-            # logger.debug(ch_list)
+        ch_list = slack.channels.list().body['channels']
+        # logger.debug(ch_list)
 
-            ch_ids = [c['id'] for c in ch_list]
-            # logger.debug(ch_ids)
+        ch_ids = [c['id'] for c in ch_list]
+        # logger.debug(ch_ids)
 
-            general = None
+        general = None
 
-            for ch in ch_ids:
-                info = slack.channels.info(ch).body['channel']
-                if info['is_general']:
-                    general = info['id']
-                    break
+        for ch in ch_ids:
+            info = slack.channels.info(ch).body['channel']
+            if info['is_general']:
+                general = info['id']
+                break
 
-            logger.info("The general channel for team {} has id {}".format(team_id, general))
-        except Exception as e:
-            logger.exception(e)
-            return redirect('slack-info')
+        logger.info("The general channel for team {} has id {}".format(team_id, general))
 
         # Make a new team
         new_team = Team.objects.update_or_create(access_token=access_token,
@@ -84,6 +78,13 @@ def auth(request):
 
         return redirect('https://slack.com/oauth/authorize?scope=identity.basic&client_id={}&state=resumeSignIn'.format(client_id))
     elif state == "resumeSignIn":
+        # Pull this teams data and events out of the DB
+        try:
+            team = Team.objects.get(team_id=team_id)
+        except Exception as e:
+            logger.exception(e)
+            # TODO Make slack-info post a dialog about not being able to login
+            return redirect('slack-info')
 
         user = slack.users.info(data['user']['id']).body['user']
         is_admin = user['is_admin'] or user['is_owner']
@@ -94,27 +95,20 @@ def auth(request):
             # TODO Make slack-info post a dialog about not being an admin
             return redirect('slack-info')
 
-        # Pull this teams data and events out of the DB
-        try:
-            team = Team.objects.get(team_id=team_id)
-        except Exception as e:
-            logger.exception(e)
-            # TODO Make slack-info post a dialog about not being able to login
-            return redirect('slack-info')
-
         logger.info("Team data loaded for " + team_id)
 
-        # Go display it
-        return redirect('slack-config', {'team': team, 'priv_ch':priv_ch,
-                                         'pub_ch':pub_ch, 'admin':is_admin})
+        # Go config display it
+        return redirect('slack-config', team_id=team_id)
     else:
         logger.warning('Unknown auth state passed.')
         return redirect('slack-info')
 
-def config(request):
-    logger.info("Loading config menu")
-    # TODO Make a team settings panel
-    return render(request, 'config.html')
+def config(request, team_id):
+    logger.info("Loading config menu for {}".format(team_id))
+    team = Team.objects.get(team_id=team_id)
+    form = TeamSettingsForm(team)
+
+    return render(request, 'config.html', {'form':form})
 
 @csrf_exempt
 @require_POST
@@ -264,7 +258,7 @@ def button_callback(request):
     elif action['name'] == 'reject':
         org_msg['attachments'][0]['footer'] = ":no_entry_sign: <@{}> rejected this message.".format(clicker['id'])
     else:
-        return HttpResponse(status=403)
+        return HttpResponse(status=401)
 
     org_msg['attachments'][0]['ts'] = click_ts
     org_msg['attachments'][0].pop('actions', None)

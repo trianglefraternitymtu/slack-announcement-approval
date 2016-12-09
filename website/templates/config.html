@@ -2,20 +2,11 @@
 {% load staticfiles %}
 
 {% block content %}
-  <div class="container">
 
-
-<h2>Page View Report</h2>
-
-
-<ul>
-
-{% for greeting in greetings %}
-    <li>{{ greeting.when }}</li>
-{% endfor %}
-
-</ul>
-
-</div>
+<form action="" method="post">
+  {% csrf_token %}
+  {{ form }}
+  <input type="submit" value="Save" />
+</form>
 
 {% endblock %}
