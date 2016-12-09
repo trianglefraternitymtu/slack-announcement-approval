@@ -2,12 +2,15 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST, require_GET
+
 from slacker import OAuth, Slacker, BaseAPI
-from .models import Team
-from . import verified_token, error_msg
+
 import os
 import json
 import logging
+
+from .models import Team
+from . import verified_token, error_msg
 
 logger = logging.getLogger('basicLogger')
 
@@ -101,9 +104,6 @@ def auth(request):
 
         logger.info("Team data loaded for " + team_id)
 
-        priv_ch = {g['name']:g['id'] for g in slack.groups.list().body['groups']}
-        pub_ch = {c['name']:c['id'] for c in slack.channels.list().body['channels']}
-
         # Go display it
         return redirect('slack-config', {'team': team, 'priv_ch':priv_ch,
                                          'pub_ch':pub_ch, 'admin':is_admin})
@@ -112,8 +112,9 @@ def auth(request):
         return redirect('slack-info')
 
 def config(request):
+    logger.info("Loading config menu")
     # TODO Make a team settings panel
-    return render (request, 'config.html')
+    return render(request, 'config.html')
 
 @csrf_exempt
 @require_POST
