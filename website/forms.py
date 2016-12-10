@@ -21,6 +21,6 @@ class TeamSettingsForm(forms.ModelForm):
         fields = ['post_channel', 'approval_channel', 'admin_only_approval',
                   'admin_only_edit']
         widgets = {
-            'post_channel': forms.ChoiceField(),
-            'approval_channel': forms.ChoiceField()
+            'post_channel': forms.ChoiceField(attrs={}),
+            'approval_channel': forms.ChoiceField(attrs={})
         }
