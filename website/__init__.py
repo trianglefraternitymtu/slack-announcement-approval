@@ -1,6 +1,6 @@
 import os
 
-signin_link = 'https://slack.com/oauth/authorize?scope=identity.basic&client_id={}&state=resumeSignIn'.format(os.environ.get('SLACK_CLIENT_ID'))
+signin_link = 'https://slack.com/oauth/authorize?scope=identity.basic,identity.team&client_id={}&state=resumeSignIn'.format(os.environ.get('SLACK_CLIENT_ID'))
 
 def error_msg(msg):
     return {

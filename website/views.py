@@ -86,15 +86,18 @@ def auth(request):
                 general = info['id']
                 break
 
-        logger.info("The general channel for team {} has id {}".format(team_id, general))
+        logger.info("The general channel for team {} has ID {}".format(team_id, general))
 
         # Make a new team
-        new_team = Team.objects.update_or_create(access_token=access_token,
-                                       team_id=team_id,
-                                       approval_channel=user_id,
-                                       post_channel=general,
-                                       last_edit=user_id)
-        logger.info("Team added to database!")
+        try:
+            new_team = Team.objects.update_or_create(access_token=access_token,
+                                                     team_id=team_id,
+                                                     approval_channel=user_id,
+                                                     post_channel=general,
+                                                     last_edit=user_id)
+            logger.info("Team added to database!")
+        except Exception as e:
+            raise
 
         return redirect(signin_link)
     elif state == "resumeSignIn":
