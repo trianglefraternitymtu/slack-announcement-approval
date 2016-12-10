@@ -73,27 +73,22 @@ def auth(request):
         logger.debug("Adding team \"{}\" to the database.".format(team_id))
 
         ch_list = slack.channels.list().body['channels']
-        # logger.debug(ch_list)
-
         ch_ids = [c['id'] for c in ch_list]
-        # logger.debug(ch_ids)
-
-        general = None
 
         for ch in ch_ids:
-            info = slack.channels.info(ch).body['channel']
-            if info['is_general']:
-                general = info['id']
+            general = slack.channels.info(ch).body['channel']
+            if general['is_general']:
                 break
 
-        logger.info("The general channel for team {} has ID {}".format(team_id, general))
+        logger.info("The general channel for team {} is #{name}({id})".format(
+                                                            team_id, **general))
 
         # Make a new team
         try:
             new_team = Team.objects.update_or_create(access_token=access_token,
                                                      team_id=team_id,
                                                      approval_channel=user_id,
-                                                     post_channel=general,
+                                                     post_channel=general['id'],
                                                      last_edit=user_id)
             logger.info("Team added to database!")
         except Exception as e:
@@ -105,15 +100,15 @@ def auth(request):
         try:
             user = slack.users.info(data['user']['id']).body['user']
             is_admin = user['is_admin'] or user['is_owner']
-            team = data['team']
+            team_data = data['team']
         except Exception as e:
             logger.exception(e)
             return redirect('slack-info')
 
         # Pull this teams data and events out of the DB
         try:
-            team = Team.objects.get(team_id=team['id'])
-            logger.info("Team data loaded for " + team['id'])
+            team = Team.objects.get(team_id=team_data['id'])
+            logger.info("Team data loaded for " + team_data['id'])
         except Exception as e:
             logger.exception(e)
             # TODO Make slack-info post a dialog about not being able to login
@@ -131,12 +126,9 @@ def auth(request):
             logger.exception(e)
             return redirect('slack-info')
 
-        slack.auth.revoke(test=False)
-        logger.info("Signin token revoked")
-
         # Go config display it
-        return render(request, 'config.html', {'form':form, 'team': team,
-                                               'user': user})
+        return render(request, 'config.html', {'form':form, 'user': user,
+                                               'team_data': team_data,})
     else:
         logger.warning('Unknown auth state passed.')
         return redirect('slack-info')
