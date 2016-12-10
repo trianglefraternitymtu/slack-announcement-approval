@@ -11,9 +11,9 @@ class TeamSettingsForm(forms.ModelForm):
 
         slack = Slacker(kwargs['instance'].access_token)
 
-        priv_ch = [(g['name'], g['id']) for g in slack.groups.list().body['groups']]
-        pub_ch = [(c['name'], c['id']) for c in slack.channels.list().body['channels']]
-        users = [(u['profile']['real_name'], u['id']) for u in slack.users.list().body['members']]
+        priv_ch = [(g['id'], g['name']) for g in slack.groups.list().body['groups']]
+        pub_ch = [(c['id'], c['name']) for c in slack.channels.list().body['channels']]
+        users = [(u['id'], u['profile']['real_name']) for u in slack.users.list().body['members']]
 
         self.fields['post_channel'].widget.choices = tuple(pub_ch)
         self.fields['approval_channel'].widget.choices = tuple(pub_ch + priv_ch + users)
