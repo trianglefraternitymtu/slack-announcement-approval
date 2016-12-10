@@ -11,7 +11,7 @@ import logging
 
 from .models import Team
 from .forms import TeamSettingsForm
-from . import verified_token, error_msg
+from . import verified_token, error_msg, signin_link
 
 logger = logging.getLogger('basicLogger')
 
@@ -21,12 +21,15 @@ def info(request):
 def privacy(request):
     return render(request, 'privacy.html')
 
-@require_POST
 def config(request):
-    try:
-        form = TeamSettingsForm(request.POST)
-    except Exception as e:
-        logger.exception(e)
+    if request.method == 'POST':
+        instance = Team.objects.get(team_id=request.POST.get('team_id'))
+        form = TeamSettingsForm(request.POST, instance=instance)
+    else:
+        return redirect(signin_link)
+
+    if form.is_valid():
+        pass
     return redirect('slack-info')
 
 @require_GET
@@ -84,7 +87,7 @@ def auth(request):
                                        last_edit=user_id)
         logger.info("Team added to database!")
 
-        return redirect('https://slack.com/oauth/authorize?scope=identity.basic&client_id={}&state=resumeSignIn'.format(client_id))
+        return redirect(signin_link)
     elif state == "resumeSignIn":
         user = slack.users.info(data['user']['id']).body['user']
         is_admin = user['is_admin'] or user['is_owner']
@@ -105,10 +108,10 @@ def auth(request):
 
         logger.info("Team data loaded for " + team_id)
 
-        form = TeamSettingsForm(request.POST, instance=team)
+        form = TeamSettingsForm(instance=team)
 
         # Go config display it
-        return render(request, 'config.html', {'form':form})
+        return render(request, 'config.html', {'form':form, 'team_id': team_id})
     else:
         logger.warning('Unknown auth state passed.')
         return redirect('slack-info')
