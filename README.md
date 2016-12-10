@@ -4,11 +4,11 @@ This is for teams where posting to the #general channel (often renamed to #annou
 
 ## Setup
 
-<a href="https://slack.com/oauth/authorize?scope=commands&client_id=19225015925.110455013810&state=appAdded"><img alt="Add to Slack" height="40" width="139" src="https://platform.slack-edge.com/img/add_to_slack.png" srcset="https://platform.slack-edge.com/img/add_to_slack.png 1x, https://platform.slack-edge.com/img/add_to_slack@2x.png 2x" /></a>
+<a href="https://slack.com/oauth/authorize?scope=commands,channels:read,groups:read,users:read,chat:write:bot&client_id=19225015925.110455013810&state=appAdded"><img alt="Add to Slack" height="40" width="139" src="https://platform.slack-edge.com/img/add_to_slack.png" srcset="https://platform.slack-edge.com/img/add_to_slack.png 1x, https://platform.slack-edge.com/img/add_to_slack@2x.png 2x" /></a>
 
 After the app is added to your team, you will be asked to sign in with Slack.
 
-<a href="https://slack.com/oauth/authorize?scope=identity.basic&client_id=19225015925.110455013810&state=resumeSignIn"><img alt="Sign in with Slack" height="40" width="172" src="https://platform.slack-edge.com/img/sign_in_with_slack.png" srcset="https://platform.slack-edge.com/img/sign_in_with_slack.png 1x, https://platform.slack-edge.com/img/sign_in_with_slack@2x.png 2x" /></a>
+<a href="https://slack.com/oauth/authorize?scope=identity.basic,identity.team&client_id=19225015925.110455013810&state=resumeSignIn"><img alt="Sign in with Slack" height="40" width="172" src="https://platform.slack-edge.com/img/sign_in_with_slack.png" srcset="https://platform.slack-edge.com/img/sign_in_with_slack.png 1x, https://platform.slack-edge.com/img/sign_in_with_slack@2x.png 2x" /></a>
 
 You will then be sent to the configuration page for your team.
 

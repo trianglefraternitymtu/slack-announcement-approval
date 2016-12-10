@@ -4,6 +4,7 @@
 {% block content %}
 
 <div>
+  <h2>{{ team_name }}</h2>
   <form action="config" method="POST">
     {% csrf_token %}
     {{ form.as_p }}

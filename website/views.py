@@ -101,6 +101,7 @@ def auth(request):
         user = slack.users.info(data['user']['id']).body['user']
         is_admin = user['is_admin'] or user['is_owner']
         team_id = data['team']['id']
+        team_name = data['team']['name']
 
         # Pull this teams data and events out of the DB
         try:
@@ -121,8 +122,12 @@ def auth(request):
 
         logger.info("Loading settings page")
 
+        slack.auth.revoke(test=False)
+        logger.info("Signin token revoked")
+
         # Go config display it
-        return render(request, 'config.html', {'form':form, 'team_id': team_id})
+        return render(request, 'config.html', {'form':form, 'team_id': team_id,
+                                               'team_name': team_name})
     else:
         logger.warning('Unknown auth state passed.')
         return redirect('slack-info')
