@@ -22,20 +22,23 @@ def privacy(request):
     return render(request, 'privacy.html')
 
 def config(request):
+    team_id = request.POST.pop('team_id', None)
+    logger.info("Settings update for {}".format(team_id))
+
     if request.method == 'POST':
-        team_id = request.POST.pop('team_id')
         instance = Team.objects.get(team_id=team_id)
         form = TeamSettingsForm(request.POST, instance=instance)
     else:
         return redirect(signin_link)
 
     if form.is_valid():
+        logger.info("Applying new settings")
         form.save()
+        return redirect('slack-info')
     else:
         logger.warning("Invalid settings form was submitted.")
-        redirect('slack-config', {'form': TeamSettingsForm(instance=instance),
-                                  'team_id': team_id})
-    return redirect('slack-info')
+        return redirect('slack-config', {'form': TeamSettingsForm(instance=instance),
+                                         'team_id': team_id})
 
 @require_GET
 def auth(request):
@@ -114,6 +117,8 @@ def auth(request):
         logger.info("Team data loaded for " + team_id)
 
         form = TeamSettingsForm(instance=team)
+
+        logger.info("Loading settings page")
 
         # Go config display it
         return render(request, 'config.html', {'form':form, 'team_id': team_id})
