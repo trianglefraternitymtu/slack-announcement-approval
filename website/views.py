@@ -102,13 +102,18 @@ def auth(request):
 
         return redirect(signin_link)
     elif state == "resumeSignIn":
-        user = slack.users.info(data['user']['id']).body['user']
-        is_admin = user['is_admin'] or user['is_owner']
-        team = data['team']
+        try:
+            user = slack.users.info(data['user']['id']).body['user']
+            is_admin = user['is_admin'] or user['is_owner']
+            team = data['team']
+        except Exception as e:
+            logger.exception(e)
+            return redirect('slack-info')
 
         # Pull this teams data and events out of the DB
         try:
             team = Team.objects.get(team_id=team['id'])
+            logger.info("Team data loaded for " + team['id'])
         except Exception as e:
             logger.exception(e)
             # TODO Make slack-info post a dialog about not being able to login
@@ -118,8 +123,6 @@ def auth(request):
             logger.info("Signin requires an admin and wasn't.")
             # TODO Make slack-info post a dialog about not being an admin
             return redirect('slack-info')
-
-        logger.info("Team data loaded for " + team['id'])
 
         try:
             form = TeamSettingsForm(instance=team)
