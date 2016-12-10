@@ -23,13 +23,18 @@ def privacy(request):
 
 def config(request):
     if request.method == 'POST':
-        instance = Team.objects.get(team_id=request.POST.get('team_id'))
+        team_id = request.POST.pop('team_id')
+        instance = Team.objects.get(team_id=team_id)
         form = TeamSettingsForm(request.POST, instance=instance)
     else:
         return redirect(signin_link)
 
     if form.is_valid():
-        pass
+        form.save()
+    else:
+        logger.warning("Invalid settings form was submitted.")
+        redirect('slack-config', {'form': TeamSettingsForm(instance=instance),
+                                  'team_id': team_id})
     return redirect('slack-info')
 
 @require_GET
