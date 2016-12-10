@@ -18,7 +18,7 @@ class TeamSettingsForm(forms.ModelForm):
         self.fields['post_channel'].choices(tuple(pub_ch))
         self.fields['approval_channel'].choices(tuple(pub_ch + priv_ch + users))
 
-        class Meta:
-            model = Team
-            fields = ['post_channel', 'approval_channel', 'admin_only_approval',
-                      'admin_only_edit']
+    class Meta:
+        model = Team
+        fields = ['post_channel', 'approval_channel', 'admin_only_approval',
+                  'admin_only_edit']
