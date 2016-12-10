@@ -3,11 +3,13 @@
 
 {% block content %}
 
-<form action="config" method="POST">
-  {% csrf_token %}
-  {{ form.as_p }}
-  <input type="hidden" value="{{ team_id }}" name="team_id" />
-  <input type="submit" value="Save" />
-</form>
+<div>
+  <form action="config" method="POST">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <input type="hidden" value="{{ team_id }}" name="team_id" />
+    <input type="submit" value="Save" />
+  </form>
+</div
 
 {% endblock %}

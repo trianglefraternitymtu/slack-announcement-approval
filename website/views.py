@@ -25,7 +25,7 @@ def config(request):
     logger.debug(request)
 
     if request.method == 'POST':
-        team_id = request.POST.pop('team_id', None)
+        team_id = request.POST.get('team_id', None)
         logger.info("Settings update for {}".format(team_id))
 
         instance = Team.objects.get(team_id=team_id)
