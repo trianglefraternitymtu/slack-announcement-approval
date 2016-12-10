@@ -3,6 +3,8 @@ from slacker import Slacker
 from .models import Team
 
 class TeamSettingsForm(forms.ModelForm):
+    post_channel = forms.ChoiceField()
+    approval_channel = forms.ChoiceField()
 
     def __init__(self, *args, **kwargs):
         super(TeamSettingsForm, self).__init__(*args, **kwargs)
@@ -16,11 +18,7 @@ class TeamSettingsForm(forms.ModelForm):
         self.fields['post_channel'].choices(tuple(pub_ch))
         self.fields['approval_channel'].choices(tuple(pub_ch + priv_ch + users))
 
-    class Meta:
-        model = Team
-        fields = ['post_channel', 'approval_channel', 'admin_only_approval',
-                  'admin_only_edit']
-        widgets = {
-            'post_channel': forms.ChoiceField(attrs={}),
-            'approval_channel': forms.ChoiceField(attrs={})
-        }
+        class Meta:
+            model = Team
+            fields = ['post_channel', 'approval_channel', 'admin_only_approval',
+                      'admin_only_edit']
