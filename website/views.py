@@ -97,7 +97,8 @@ def auth(request):
                                                      last_edit=user_id)
             logger.info("Team added to database!")
         except Exception as e:
-            raise
+            logger.exception(e)
+            return redirect('slack-info')
 
         return redirect(signin_link)
     elif state == "resumeSignIn":
