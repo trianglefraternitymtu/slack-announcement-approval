@@ -2,17 +2,12 @@ from django import forms
 from slacker import Slacker
 from .models import Team
 
-class TeamSettingsForm(forms.Form):
-    post_channel = forms.ChoiceField()
-    approval_channel = forms.ChoiceField()
-    admin_only_approval = forms.BooleanField()
-    admin_only_edit = forms.BooleanField()
+class TeamSettingsForm(forms.ModelForm):
 
-    def __init__(self, team):
-        self.fields['admin_only_approval'].initial = team.admin_only_approval
-        self.fields['admin_only_edit'].initial = team.admin_only_edit
+    def __init__(self, *args, **kwargs):
+        super(TeamSettingsForm, self).__init__(*args, **kwargs)
 
-        slack = Slacker(team.access_token)
+        slack = Slacker(kwargs['instance'].access_token)
 
         priv_ch = [(g['name'], g['id']) for g in slack.groups.list().body['groups']]
         pub_ch = [(c['name'], c['id']) for c in slack.channels.list().body['channels']]
@@ -23,3 +18,9 @@ class TeamSettingsForm(forms.Form):
 
     class Meta:
         model = Team
+        fields = ['post_channel', 'approval_channel', 'admin_only_approval',
+                  'admin_only_edit']
+        widgets = {
+            'post_channel': forms.ChoiceField(),
+            'approval_channel': forms.ChoiceField()
+        }

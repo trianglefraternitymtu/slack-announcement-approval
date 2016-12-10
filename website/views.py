@@ -98,7 +98,7 @@ def auth(request):
         logger.info("Team data loaded for " + team_id)
 
         try:
-            form = TeamSettingsForm(team)
+            form = TeamSettingsForm(instance=team)
 
             # Go config display it
             return render(request, 'config.html', {'form':form})
