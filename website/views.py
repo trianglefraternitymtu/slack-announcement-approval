@@ -21,6 +21,14 @@ def info(request):
 def privacy(request):
     return render(request, 'privacy.html')
 
+@require_POST
+def config(request):
+    try:
+        form = TeamSettingsForm(request.POST)
+    except Exception as e:
+        logger.exception(e)
+    return redirect('slack-info')
+
 @require_GET
 def auth(request):
     logger.info('Authentication')
@@ -97,14 +105,8 @@ def auth(request):
 
         logger.info("Team data loaded for " + team_id)
 
-        try:
-            form = TeamSettingsForm(instance=team)
-
-            # Go config display it
-            return render(request, 'config.html', {'form':form})
-        except Exception as e:
-            logger.exception(e)
-            return redirect('slack-info')
+        # Go config display it
+        return render(request, 'config.html', {'form':form})
     else:
         logger.warning('Unknown auth state passed.')
         return redirect('slack-info')
