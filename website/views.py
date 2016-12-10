@@ -104,12 +104,11 @@ def auth(request):
     elif state == "resumeSignIn":
         user = slack.users.info(data['user']['id']).body['user']
         is_admin = user['is_admin'] or user['is_owner']
-        team_id = data['team']['id']
-        team_name = data['team']['name']
+        team = data['team']
 
         # Pull this teams data and events out of the DB
         try:
-            team = Team.objects.get(team_id=team_id)
+            team = Team.objects.get(team_id=team['id'])
         except Exception as e:
             logger.exception(e)
             # TODO Make slack-info post a dialog about not being able to login
@@ -120,18 +119,21 @@ def auth(request):
             # TODO Make slack-info post a dialog about not being an admin
             return redirect('slack-info')
 
-        logger.info("Team data loaded for " + team_id)
+        logger.info("Team data loaded for " + team['id'])
 
-        form = TeamSettingsForm(instance=team)
-
-        logger.info("Loading settings page")
+        try:
+            form = TeamSettingsForm(instance=team)
+            logger.info("Loading settings page")
+        except Exception as e:
+            logger.exception(e)
+            return redirect('slack-info')
 
         slack.auth.revoke(test=False)
         logger.info("Signin token revoked")
 
         # Go config display it
-        return render(request, 'config.html', {'form':form, 'team_id': team_id,
-                                               'team_name': team_name})
+        return render(request, 'config.html', {'form':form, 'team': team,
+                                               'user': user})
     else:
         logger.warning('Unknown auth state passed.')
         return redirect('slack-info')
