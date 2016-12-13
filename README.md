@@ -2,6 +2,10 @@
 
 This is for teams where posting to the #general channel (often renamed to #announcements) has been restricted to team owners and/or admins. This would allow a user to have a message posted to the #general channel after getting approval from an admin or another private channel.
 
+## Development Delays
+
+Currently, I am a graduate student and will need to pause development for end of the semester. When this application is complete, it will be submitted to the [Slack App directory](https://slack.com/apps).
+
 ## Setup
 
 <a href="https://slack.com/oauth/authorize?scope=commands,channels:read,groups:read,users:read,chat:write:bot&client_id=19225015925.110455013810&state=appAdded"><img alt="Add to Slack" height="40" width="139" src="https://platform.slack-edge.com/img/add_to_slack.png" srcset="https://platform.slack-edge.com/img/add_to_slack.png 1x, https://platform.slack-edge.com/img/add_to_slack@2x.png 2x" /></a>
