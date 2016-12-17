@@ -51,7 +51,7 @@ Once the post has been approved or rejected, the prompt will update to record wh
 
 ### Processed response
 
-If the message was rejected, the individual who make the initial request will get this message to inform them that their announcement won't be made.
+If the message was rejected, the individual who make the initial request will get this message to inform them that their announcement won't be made. This message will be a direct message from `@slackbot`
 
 ![Rejected](website/static/rejected.jpg)
 
