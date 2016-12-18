@@ -2,10 +2,6 @@
 
 This is for teams where posting to the #general channel (often renamed to #announcements) has been restricted to team owners and/or admins. This would allow a user to have a message posted to the #general channel after getting approval from an admin or another private channel.
 
-## Development Delays
-
-Currently, I am a graduate student and will need to pause development for end of the semester. When this application is complete, it will be submitted to the [Slack App directory](https://slack.com/apps).
-
 ## Setup
 
 <a href="https://slack.com/oauth/authorize?scope=commands,channels:read,groups:read,users:read,chat:write:bot&client_id=19225015925.110455013810&state=appAdded"><img alt="Add to Slack" height="40" width="139" src="https://platform.slack-edge.com/img/add_to_slack.png" srcset="https://platform.slack-edge.com/img/add_to_slack.png 1x, https://platform.slack-edge.com/img/add_to_slack@2x.png 2x" /></a>
@@ -17,17 +13,6 @@ After the app is added to your team, you will be asked to sign in with Slack.
 You will then be sent to the configuration page for your team.
 
 Note: By default, only team admins and owners are allowed to edit the team configuration. Everyone else will be denied access until an admin or team owner logs in and allows everyone access.
-
-## Configuration
-
-At the configuration page, these are the available settings that can be changed for your Slack team. To get to the configuration page, you simply need to signin with Slack.
-
-Option | Default Value | Description
-:---|:---:|:---:
-Post channel | #general | The selected channel that is ultimatly trying to be posted too. This has to be a public channel.
-Approval channel | Person who added the app to the team | The channel where an post needs approval from. Typically a "Executive Board" kind of channel that is typically private.
-Admin only approval | True | In the channel that the request will be sent to, allow only a team admin to respond. This is for the case where there are both team admins and non-admins in the approval channel.
-Admin only login | True | Only an admin can change these settings. This can be disabled, but requires and team admin or owner to login to disable it.
 
 ## Usage
 
@@ -56,3 +41,14 @@ If the message was rejected, the individual who make the initial request will ge
 ![Rejected](website/static/rejected.jpg)
 
 If the message was approved, a post will be made automatically to selected channel. The bot will use the icon and real name of the individual who made the request in the first place. This is to show who wanted to make the announcement.
+
+## Configuration
+
+At the configuration page, these are the available settings that can be changed for your Slack team. To get to the configuration page, you simply need to signin with Slack.
+
+Option | Default Value | Description
+:---|:---:|:---:
+Post channel | #general | The selected channel that is ultimatly trying to be posted too. This has to be a public channel.
+Approval channel | Person who added the app to the team | The channel where an post needs approval from. Typically a "Executive Board" kind of channel that is typically private.
+Admin only approval | True | In the channel that the request will be sent to, allow only a team admin to respond. This is for the case where there are both team admins and non-admins in the approval channel.
+Admin only login | True | Only an admin can change these settings. This can be disabled, but requires and team admin or owner to login to disable it.
