@@ -8,8 +8,8 @@
   <form action="config" method="POST">
     {% csrf_token %}
     {{ form.as_p }}
-    <input type="hidden" value="{{ team.id }}" name="team_id" />
-    <input type="hidden" value="{{ user.id }}" name="team" />
+    <input type="hidden" value="{{ team_id }}" name="team_id" />
+    <input type="hidden" value="{{ user_id }}" name="last_edit" />
     <input type="submit" value="Save" />
   </form>
 </div

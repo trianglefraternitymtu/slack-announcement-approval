@@ -85,11 +85,11 @@ def auth(request):
 
         # Make a new team
         try:
-            new_team = Team.objects.update_or_create(access_token=access_token,
-                                                     team_id=team_id,
-                                                     approval_channel=user_id,
-                                                     post_channel=general['id'],
-                                                     last_edit=user_id)
+            team, created = Team.objects.update_or_create(team_id=team_id,
+                                         defaults={'access_token':access_token,
+                                                   'approval_channel':user_id,
+                                                   'post_channel':general['id'],
+                                                   'last_edit':user_id})
             logger.info("Team added to database!")
         except Exception as e:
             logger.exception(e)
@@ -127,8 +127,9 @@ def auth(request):
             return redirect('slack-info')
 
         # Go config display it
-        return render(request, 'config.html', {'form':form, 'user': user,
-                                               'team_data': team_data,})
+        return render(request, 'config.html', {'form':form, 'user_id': user['id'],
+                                               'team_name': team_data['name'],
+                                               'team_id': team_data['id']})
     else:
         logger.warning('Unknown auth state passed.')
         return redirect('slack-info')
