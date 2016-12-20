@@ -61,12 +61,12 @@ def auth(request):
         logger.exception(e)
         return redirect('slack-info')
 
-    access_token = data['access_token']
-
-    slack = Slacker(access_token)
-    logger.info("Slack API interfaced")
-
     if state == 'appAdded':
+        access_token = data['access_token']
+
+        slack = Slacker(access_token)
+        logger.info("Slack API interfaced")
+
         user_id = data['user_id']
         team_id = data['team_id']
 
@@ -97,13 +97,7 @@ def auth(request):
 
         return redirect(signin_link)
     elif state == "resumeSignIn":
-        try:
-            user = slack.users.info(data['user']['id']).body['user']
-            is_admin = user['is_admin'] or user['is_owner']
-            team_data = data['team']
-        except Exception as e:
-            logger.exception(e)
-            return redirect('slack-info')
+        team_data = data['team']
 
         # Pull this teams data and events out of the DB
         try:
@@ -112,6 +106,14 @@ def auth(request):
         except Exception as e:
             logger.exception(e)
             # TODO Make slack-info post a dialog about not being able to login
+            return redirect('slack-info')
+
+        try:
+            slack = Slacker(team.access_token)
+            user_data = slack.users.info(data['user']['id']).body['user']
+            is_admin = user_data['is_admin'] or user_data['is_owner']
+        except Exception as e:
+            logger.exception(e)
             return redirect('slack-info')
 
         if not is_admin and team.admin_only_edit:
@@ -127,7 +129,8 @@ def auth(request):
             return redirect('slack-info')
 
         # Go config display it
-        return render(request, 'config.html', {'form':form, 'user_id': user['id'],
+        return render(request, 'config.html', {'form':form,
+                                               'user_id': user_data['id'],
                                                'team_name': team_data['name'],
                                                'team_id': team_data['id']})
     else:
