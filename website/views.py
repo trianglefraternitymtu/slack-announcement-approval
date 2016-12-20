@@ -21,17 +21,16 @@ def info(request):
 def privacy(request):
     return render(request, 'privacy.html')
 
+@require_POST
 def config(request):
-    logger.debug(request)
+    logger.debug(request.POST)
 
-    if request.method == 'POST':
-        team_id = request.POST.get('team_id', None)
-        logger.info("Settings update for {}".format(team_id))
+    team_id = request.POST.get('team_id', None)
+    logger.info("Settings update for {}".format(team_id))
 
-        instance = Team.objects.get(team_id=team_id)
-        form = TeamSettingsForm(request.POST, instance=instance)
-    else:
-        return redirect(signin_link)
+    instance = Team.objects.get(team_id=team_id)
+    form = TeamSettingsForm(request.POST, instance=instance)
+    logger.debug(form)
 
     if form.is_valid():
         logger.info("Applying new settings")
