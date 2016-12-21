@@ -30,7 +30,6 @@ def config(request):
 
     instance = Team.objects.get(team_id=team_id)
     form = TeamSettingsForm(request.POST, instance=instance)
-    logger.debug(form)
 
     if form.is_valid():
         logger.info("Applying new settings")
@@ -38,6 +37,7 @@ def config(request):
         return redirect('slack-info')
     else:
         logger.warning("Invalid settings form was submitted.")
+        logger.debug(form.errors)
         return redirect('slack-config', {'form': form, 'team_id': team_id})
 
 @require_GET
