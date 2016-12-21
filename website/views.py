@@ -21,8 +21,10 @@ def info(request):
 def privacy(request):
     return render(request, 'privacy.html')
 
-@require_POST
 def config(request):
+    if request.method == 'GET':
+        return redirect(signin_link)
+
     logger.debug(request.POST)
 
     team_id = request.POST.get('team_id', None)
