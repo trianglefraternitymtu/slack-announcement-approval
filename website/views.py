@@ -130,7 +130,7 @@ def auth(request):
             return redirect('slack-info')
 
         try:
-            form = TeamSettingsForm(instance=team)
+            form = TeamSettingsForm(instance=team, token=data['access_token'])
             logger.info("Loading settings page")
         except Exception as e:
             logger.exception(e)
