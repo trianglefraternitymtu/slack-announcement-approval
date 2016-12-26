@@ -5,13 +5,13 @@ from .models import Team
 class TeamSettingsForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
-        super(TeamSettingsForm, self).__init__(*args, **kwargs)
-
         if 'token' in kwargs:
             token = kwargs.pop('token')
         else:
             token = kwargs['instance'].access_token
 
+        super(TeamSettingsForm, self).__init__(*args, **kwargs)
+        
         slack = Slacker(token)
 
         priv_ch = [(g['id'], g['name']) for g in slack.groups.list().body['groups'] if not g['is_archived']]
