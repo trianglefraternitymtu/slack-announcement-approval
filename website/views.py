@@ -48,12 +48,18 @@ def auth(request):
 
     code = request.GET.get('code')
     state = request.GET.get('state', None)
+    error = request.GET.get('error', None)
+    
     client_id = os.environ.get('SLACK_CLIENT_ID')
     client_secret = os.environ.get('SLACK_CLIENT_SECRET')
 
     logger.debug(request.GET)
     logger.debug(code)
     logger.debug(state)
+
+    if error:
+        # TODO Make a popup that says there was an error signing in
+        return redirect('slack-info')
 
     try:
         data = OAuth().access(client_id, client_secret, code).body
