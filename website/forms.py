@@ -5,16 +5,11 @@ from .models import Team
 class TeamSettingsForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
-        if 'token' in kwargs:
-            token = kwargs.pop('token')
-        else:
-            token = kwargs['instance'].access_token
-
         super(TeamSettingsForm, self).__init__(*args, **kwargs)
-        
-        slack = Slacker(token)
 
-        priv_ch = [(g['id'], g['name']) for g in slack.groups.list().body['groups'] if not g['is_archived']]
+        slack = Slacker(kwargs['instance'].access_token)
+
+        priv_ch = [(g['id'], g['name']) for g in slack.groups.list().body['groups'] if not (g['is_archived'] or g['name'].startswith('mpdm'))]
         pub_ch = [(c['id'], c['name']) for c in slack.channels.list().body['channels'] if not c['is_archived']]
         users = [(u['id'], u['profile']['real_name']) for u in slack.users.list().body['members'] if not u['deleted']]
 

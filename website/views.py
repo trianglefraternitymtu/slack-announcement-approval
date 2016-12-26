@@ -36,7 +36,6 @@ def config(request):
     if form.is_valid():
         logger.info("Applying new settings")
         form.save()
-        Slacker(request.POST.get('token')).auth.revoke(test=False)
         return redirect('slack-info')
     else:
         logger.warning("Invalid settings form was submitted.")
@@ -130,7 +129,7 @@ def auth(request):
             return redirect('slack-info')
 
         try:
-            form = TeamSettingsForm(instance=team, token=data['access_token'])
+            form = TeamSettingsForm(instance=team)
             logger.info("Loading settings page")
         except Exception as e:
             logger.exception(e)
@@ -140,8 +139,7 @@ def auth(request):
         return render(request, 'config.html', {'form':form,
                                                'user_id': user_data['id'],
                                                'team_name': team_data['name'],
-                                               'team_id': team_data['id'],
-                                               'token': data['access_token']})
+                                               'team_id': team_data['id']})
     else:
         logger.warning('Unknown auth state passed.')
         return redirect('slack-info')
