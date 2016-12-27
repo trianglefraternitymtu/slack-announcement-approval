@@ -185,6 +185,17 @@ def command(request):
         logger.exception(e)
         return JsonResponse(error_msg("Slack API not initialized. Might want to try re-adding this app."))
 
+    # TODO remove this when this included into slacker main
+    ch_list = slack.channels.list().body['channels']
+    ch_list = [('#{}'.format(c['name']), '<#{}>'.format(c['id'])) for c in ch_list]
+    for k,v in ch_list:
+        text = text.replace(k,v)
+
+    user_list = slack.users.list().body['members']
+    user_list = [('#{}'.format(c['name']), '<#{}>'.format(c['id'])) for c in user_list]
+    for k,v in user_list:
+        text = text.replace(k,v)
+
     try:
         # Make a post to approval_channel with buttons
         slack.chat.post_message(team.approval_channel,
