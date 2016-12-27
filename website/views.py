@@ -135,8 +135,6 @@ def auth(request):
             logger.exception(e)
             return redirect('slack-info')
 
-        Slacker(data['access_token']).auth.revoke(test=False)
-
         # Go config display it
         return render(request, 'config.html', {'form':form,
                                                'user_id': user_data['id'],
