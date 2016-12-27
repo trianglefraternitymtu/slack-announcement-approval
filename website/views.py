@@ -192,7 +192,7 @@ def command(request):
         text = text.replace(k,v)
 
     user_list = slack.users.list().body['members']
-    user_list = [('#{}'.format(c['name']), '<#{}>'.format(c['id'])) for c in user_list]
+    user_list = [('@{}'.format(c['name']), '<@{}>'.format(c['id'])) for c in user_list]
     for k,v in user_list:
         text = text.replace(k,v)
 
