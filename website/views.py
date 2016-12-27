@@ -186,15 +186,17 @@ def command(request):
         return JsonResponse(error_msg("Slack API not initialized. Might want to try re-adding this app."))
 
     # TODO remove this when this included into slacker main
+    tagged_text = text
+
     ch_list = slack.channels.list().body['channels']
     ch_list = [('#{}'.format(c['name']), '<#{}>'.format(c['id'])) for c in ch_list]
     for k,v in ch_list:
-        text = text.replace(k,v)
+        tagged_text = tagged_text.replace(k,v)
 
     user_list = slack.users.list().body['members']
     user_list = [('@{}'.format(c['name']), '<@{}>'.format(c['id'])) for c in user_list]
     for k,v in user_list:
-        text = text.replace(k,v)
+        tagged_text = tagged_text.replace(k,v)
 
     try:
         # Make a post to approval_channel with buttons
@@ -203,7 +205,7 @@ def command(request):
                                                                 team.post_channel),
             as_user=False,
             attachments=[{
-                'text':text,
+                'text':tagged_text,
                 'pretext':'Message body:',
                 'fallback':'<@{}> has made a request to post something to <#{}>'.format(user_id, team.post_channel),
                 'callback_id':user_id,
@@ -318,21 +320,34 @@ def button_callback(request):
         logger.exception(e)
         return JsonResponse(error_msg("Something bad happened while posting an update."))
 
-    # Push approved announcement out
+    # TODO remove this when this included into slacker main
+    tagged_text = action['value'][1]
+
+    ch_list = slack.channels.list().body['channels']
+    ch_list = [('#{}'.format(c['name']), '<#{}>'.format(c['id'])) for c in ch_list]
+    for k,v in ch_list:
+        tagged_text = tagged_text.replace(k,v)
+
+    user_list = slack.users.list().body['members']
+    user_list = [('@{}'.format(c['name']), '<@{}>'.format(c['id'])) for c in user_list]
+    for k,v in user_list:
+        tagged_text = tagged_text.replace(k,v)
+
+    # Push approved or rejected announcement out
     try:
         post_response = {}
         if action['name'] == 'approve':
             post_response['channel'] = team.post_channel
             post_response['username'] = requester['profile']['real_name']
             post_response['icon_url'] = requester['profile']['image_192']
-            post_response['text'] = action['value'][1]
+            post_response['text'] = tagged_text
             post_response['as_user'] = False
 
         elif action['name'] == 'reject':
             post_response['text'] = 'Your announcement request has been rejected.'
             post_response['channel'] = action['value'][0]
             post_response['attachments'] = [{
-                    'text':action['value'][1],
+                    'text':tagged_text,
                     'pretext':'Message body:',
                     'fallback':'<@{}> has rejected your post <#{}>'.format(clicker['id'], team.post_channel),
                     'mrkdwn_in':['text'],
