@@ -4,7 +4,9 @@ This is for teams where posting to the #general channel (often renamed to #annou
 
 ## Setup
 
-<a href="https://slack.com/oauth/authorize?scope=commands,channels:read,groups:read,users:read,chat:write:bot&client_id=19225015925.110455013810&state=appAdded"><img alt="Add to Slack" height="40" width="139" src="https://platform.slack-edge.com/img/add_to_slack.png" srcset="https://platform.slack-edge.com/img/add_to_slack.png 1x, https://platform.slack-edge.com/img/add_to_slack@2x.png 2x" /></a>
+<a href="https://slack.com/oauth/authorize?scope=incoming-webhook,commands,channels:read,users:read,chat:write:bot&client_id=19225015925.110455013810&state=appAdded"><img alt="Add to Slack" height="40" width="139" src="https://platform.slack-edge.com/img/add_to_slack.png" srcset="https://platform.slack-edge.com/img/add_to_slack.png 1x, https://platform.slack-edge.com/img/add_to_slack@2x.png 2x" /></a>
+
+You will be prompted to setup the incoming webhook, this webhook is used to select the channel that approval requests are sent too. Select the channel or user that you want these requests to be sent too.
 
 After the app is added to your team, you will be asked to sign in with Slack.
 
@@ -49,6 +51,8 @@ At the configuration page, these are the available settings that can be changed 
 Option | Default Value | Description
 :---|:---:|:---:
 Post channel | #general | The selected channel that is ultimatly trying to be posted too. This has to be a public channel.
-Approval channel | Person who added the app to the team | The channel where an post needs approval from. Typically a "Executive Board" kind of channel that is typically private.
+Approval channel [1] | Person who added the app to the team | The channel where an post needs approval from. Typically a "Executive Board" kind of channel that is typically private.
 Admin only approval | True | In the channel that the request will be sent to, allow only a team admin to respond. This is for the case where there are both team admins and non-admins in the approval channel.
 Admin only login | True | Only an admin can change these settings. This can be disabled, but requires and team admin or owner to login to disable it.
+
+[1] This list is determined by the user who added the app to the team in the first place. If you have a dummy account to just hold authentication tokens, this user would also have to be in the private channel you want to select.
