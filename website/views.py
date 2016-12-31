@@ -213,15 +213,14 @@ def command(request):
                 'actions':[{
                     'name':'approve',
                     'text':'Approve',
+                    'style':'primary',
                     'type':'button',
-                    'color':'primary',
                     'value':'{} {}'.format(user_id, text)
                 }, {
                     'name':'reject',
                     'text':'Reject',
                     'style':'danger',
                     'type':'button',
-                    'color':'danger',
                     'value':'{} {}'.format(user_id, text)
                 }]
             }])
