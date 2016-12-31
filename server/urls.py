@@ -7,9 +7,10 @@ from website import views
 
 urlpatterns = [
     url(r'^$', views.info, name='slack-info'),
-    url(r'^auth', views.auth, name='slack-auth'),
-    url(r'^command', views.command, name='slack-command'),
-    url(r'^button', views.button_callback, name='slack-button'),
-    url(r'^config', views.config, name='slack-config'),
-    url(r'^privacy', views.privacy, name='slack-privacy')
+    url(r'^auth$', views.auth, name='slack-auth'),
+    url(r'^command$', views.command, name='slack-command'),
+    url(r'^button$', views.button_callback, name='slack-button'),
+    url(r'^config$', views.config, name='slack-config'),
+    url(r'^privacy$', views.privacy, name='slack-privacy'),
+    url(r'^badge/(?P<badge>\w+)$', views.badge, name='slack-badge')
 ]

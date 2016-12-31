@@ -11,7 +11,7 @@ import logging
 
 from .models import Team
 from .forms import TeamSettingsForm
-from . import verified_token, error_msg, signin_link
+from . import verified_token, error_msg, signin_link, badge_link
 
 logger = logging.getLogger('basicLogger')
 
@@ -20,6 +20,16 @@ def info(request):
 
 def privacy(request):
     return render(request, 'privacy.html')
+
+@require_GET
+def badge(request, badge=None):
+    value = None
+    if badge == 'installs':
+        value = Team.objects.count()
+    else:
+        return HttpResponse(status=404)
+
+    return redirect(badge_link(badge=badge, value=value))
 
 def config(request):
     if request.method == 'GET':
