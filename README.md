@@ -1,6 +1,6 @@
 # Announcement Approval for Slack [![Build Status](https://travis-ci.org/raveious/slack-announcement-approval.svg?branch=master)](https://travis-ci.org/raveious/slack-announcement-approval) [![Installs](https://slack-announcement-approval.herokuapp.com/badge/installs)](https://slack-announcement-approval.herokuapp.com/)
 
-This is for teams where posting to the #general channel (often renamed to #announcements) has been restricted to team owners and/or admins. This would allow a user to have a message posted to the #general channel after getting approval from an admin or another private channel.
+This is for teams where posting to the [#general](my.slack.com/messages/general/) channel (often renamed to [#announcements](my.slack.com/messages/announcements/)) has been restricted to team owners and/or admins. This would allow a user to have a message posted to the #general channel after getting approval from an admin or another private channel.
 
 ## Setup
 
@@ -50,8 +50,8 @@ At the configuration page, these are the available settings that can be changed 
 
 Option | Default Value | Description
 :---|:---:|:---:
-Post channel | #general | The selected channel that is ultimatly trying to be posted too. This has to be a public channel.
-Approval channel [1] | Person who added the app to the team | The channel where an post needs approval from. Typically a "Executive Board" kind of channel that is typically private.
+Post channel | [#general](my.slack.com/messages/general/) or it's replacement | The selected channel that is ultimatly trying to be posted too. This has to be a public channel.
+Approval channel [1] | The user who added the app to the team | The channel where an post needs approval from. Typically a "Executive Board" kind of channel that is typically private.
 Admin only approval | True | In the channel that the request will be sent to, allow only a team admin to respond. This is for the case where there are both team admins and non-admins in the approval channel.
 Admin only login | True | Only an admin can change these settings. This can be disabled, but requires and team admin or owner to login to disable it.
 
