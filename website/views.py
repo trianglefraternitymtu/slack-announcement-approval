@@ -106,6 +106,7 @@ def auth(request):
                                          defaults={'access_token':access_token,
                                                    'approval_channel':user_id,
                                                    'post_channel':general['id'],
+                                                   'backup_channel':user_id,
                                                    'last_edit':user_id})
             logger.info("Team added to database!")
         except Exception as e:
@@ -224,6 +225,11 @@ def command(request):
                     'name':'approve',
                     'text':'Approve',
                     'style':'primary',
+                    'type':'button',
+                    'value':'{} {}'.format(user_id, text)
+                }, {
+                    'name':'backup',
+                    'text':'Post to <#{}> instead'.format(team.backup_channel),
                     'type':'button',
                     'value':'{} {}'.format(user_id, text)
                 }, {
@@ -347,6 +353,13 @@ def button_callback(request):
         post_response = {}
         if action['name'] == 'approve':
             post_response['channel'] = team.post_channel
+            post_response['username'] = requester['profile']['real_name']
+            post_response['icon_url'] = requester['profile']['image_192']
+            post_response['text'] = tagged_text
+            post_response['as_user'] = False
+
+        elif action['name'] == 'backup':
+            post_response['channel'] = team.backup_channel
             post_response['username'] = requester['profile']['real_name']
             post_response['icon_url'] = requester['profile']['image_192']
             post_response['text'] = tagged_text
