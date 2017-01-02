@@ -319,6 +319,8 @@ def button_callback(request):
         org_msg['attachments'][0]['footer'] = ":ok_hand: <@{}> approved this message.".format(clicker['id'])
     elif action['name'] == 'reject':
         org_msg['attachments'][0]['footer'] = ":no_entry_sign: <@{}> rejected this message.".format(clicker['id'])
+    elif action['name'] == 'backup':
+        org_msg['attachments'][0]['footer'] = "<@{}> deverted this message to <#{}>.".format(clicker['id'], team.backup_channel)
     else:
         return HttpResponse(status=401)
 
