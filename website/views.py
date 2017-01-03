@@ -106,7 +106,7 @@ def auth(request):
                                          defaults={'access_token':access_token,
                                                    'approval_channel':user_id,
                                                    'post_channel':general['id'],
-                                                   'backup_channel':user_id,
+                                                   'backup_channel':None,
                                                    'last_edit':user_id})
             logger.info("Team added to database!")
         except Exception as e:
@@ -209,39 +209,43 @@ def command(request):
     for k,v in user_list:
         tagged_text = tagged_text.replace(k,v)
 
-    backup_name = slack.channels.info(team.backup_channel).body['channel']['name']
-
     try:
+        prompt = {
+            'text':tagged_text,
+            'pretext':'Message body:',
+            'fallback':'<@{}> has made a request to post something to <#{}>'.format(user_id, team.post_channel),
+            'callback_id':user_id,
+            'mrkdwn_in':['text'],
+            'actions':[{
+                'name':'approve',
+                'text':'Approve',
+                'style':'primary',
+                'type':'button',
+                'value':'{} {}'.format(user_id, text)
+            }, {
+                'name':'reject',
+                'text':'Reject',
+                'style':'danger',
+                'type':'button',
+                'value':'{} {}'.format(user_id, text)
+            }]
+        }
+
+        if team.backup_channel:
+            backup_name = slack.channels.info(team.backup_channel).body['channel']['name']
+            prompt['actions'].insert({
+                'name':'backup',
+                'text':'Divert to #{}'.format(backup_name),
+                'type':'button',
+                'value':'{} {}'.format(user_id, text)
+            }, 1)
+
         # Make a post to approval_channel with buttons
         slack.chat.post_message(team.approval_channel,
             '<@{}> has made a request to post a message to <#{}>'.format(user_id,
                                                                 team.post_channel),
             as_user=False,
-            attachments=[{
-                'text':tagged_text,
-                'pretext':'Message body:',
-                'fallback':'<@{}> has made a request to post something to <#{}>'.format(user_id, team.post_channel),
-                'callback_id':user_id,
-                'mrkdwn_in':['text'],
-                'actions':[{
-                    'name':'approve',
-                    'text':'Approve',
-                    'style':'primary',
-                    'type':'button',
-                    'value':'{} {}'.format(user_id, text)
-                }, {
-                    'name':'backup',
-                    'text':'Divert to #{}'.format(backup_name),
-                    'type':'button',
-                    'value':'{} {}'.format(user_id, text)
-                }, {
-                    'name':'reject',
-                    'text':'Reject',
-                    'style':'danger',
-                    'type':'button',
-                    'value':'{} {}'.format(user_id, text)
-                }]
-            }])
+            attachments=[prompt])
 
         logger.info("Approval request posted to {}".format(team.approval_channel))
     except Exception as e:

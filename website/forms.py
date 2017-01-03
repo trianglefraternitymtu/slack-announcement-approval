@@ -14,7 +14,7 @@ class TeamSettingsForm(forms.ModelForm):
         users = [(u['id'], u['profile']['real_name']) for u in slack.users.list().body['members'] if not u['deleted']]
 
         self.fields['post_channel'].widget = forms.Select(choices=tuple(pub_ch))
-        self.fields['backup_channel'].widget = forms.Select(choices=tuple(pub_ch))
+        self.fields['backup_channel'].widget = forms.Select(choices=tuple(pub_ch + [None, 'Disabled']))
         self.fields['approval_channel'].widget = forms.Select(choices=tuple(pub_ch + priv_ch + users))
 
     class Meta:
