@@ -52,7 +52,7 @@ Option | Default Value | Description
 :---|:---:|:---:
 Post channel | [#general](https://my.slack.com/messages/general/) or it's replacement | The selected channel that is ultimatly trying to be posted too. This has to be a public channel.
 Approval channel [1] | The user who added the app to the team | The channel where an post needs approval from. Typically a "Executive Board" kind of channel that is typically private.
-Backup channel | The user who added the app to the team | Another option is to devert the post to a less important channel, this is the channel it will be deverted too.
+Backup channel | The user who added the app to the team | Another option is to divert the post to a less important channel, this is the channel it will be diverted too.
 Admin only approval | True | In the channel that the request will be sent to, allow only a team admin to respond. This is for the case where there are both team admins and non-admins in the approval channel.
 Admin only login | True | Only an admin can change these settings. This can be disabled, but requires and team admin or owner to login to disable it.
 

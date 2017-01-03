@@ -209,6 +209,8 @@ def command(request):
     for k,v in user_list:
         tagged_text = tagged_text.replace(k,v)
 
+    backup_name = slack.channels.info(team.backup_channel).body['channel']['name']
+
     try:
         # Make a post to approval_channel with buttons
         slack.chat.post_message(team.approval_channel,
@@ -229,7 +231,7 @@ def command(request):
                     'value':'{} {}'.format(user_id, text)
                 }, {
                     'name':'backup',
-                    'text':'Post to <#{}> instead'.format(team.backup_channel),
+                    'text':'Divert to #{}'.format(backup_name),
                     'type':'button',
                     'value':'{} {}'.format(user_id, text)
                 }, {
@@ -320,7 +322,7 @@ def button_callback(request):
     elif action['name'] == 'reject':
         org_msg['attachments'][0]['footer'] = ":no_entry_sign: <@{}> rejected this message.".format(clicker['id'])
     elif action['name'] == 'backup':
-        org_msg['attachments'][0]['footer'] = "<@{}> deverted this message to <#{}>.".format(clicker['id'], team.backup_channel)
+        org_msg['attachments'][0]['footer'] = ":arrow_heading_down: <@{}> diverted this message to <#{}>.".format(clicker['id'], team.backup_channel)
     else:
         return HttpResponse(status=401)
 
