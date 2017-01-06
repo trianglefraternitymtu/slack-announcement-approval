@@ -6,8 +6,6 @@ This is for teams where posting to the [#general](https://my.slack.com/messages/
 
 <a href="https://slack.com/oauth/authorize?scope=commands,channels:read,groups:read,users:read,chat:write:bot&client_id=19225015925.110455013810&state=appAdded"><img alt="Add to Slack" height="40" width="139" src="https://platform.slack-edge.com/img/add_to_slack.png" srcset="https://platform.slack-edge.com/img/add_to_slack.png 1x, https://platform.slack-edge.com/img/add_to_slack@2x.png 2x" /></a>
 
-You will be prompted to setup the incoming webhook, this webhook is used to select the channel that approval requests are sent too. Select the channel or user that you want these requests to be sent too.
-
 After the app is added to your team, you will be asked to sign in with Slack.
 
 <a href="https://slack.com/oauth/authorize?scope=identity.basic,identity.team&client_id=19225015925.110455013810&state=resumeSignIn"><img alt="Sign in with Slack" height="40" width="172" src="https://platform.slack-edge.com/img/sign_in_with_slack.png" srcset="https://platform.slack-edge.com/img/sign_in_with_slack.png 1x, https://platform.slack-edge.com/img/sign_in_with_slack@2x.png 2x" /></a>
