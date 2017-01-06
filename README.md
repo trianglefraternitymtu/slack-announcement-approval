@@ -1,6 +1,6 @@
 # Announcement Approval for Slack [![Build Status](https://travis-ci.org/raveious/slack-announcement-approval.svg?branch=master)](https://travis-ci.org/raveious/slack-announcement-approval) [![Installs](https://slack-announcement-approval.herokuapp.com/badge/installs)](https://slack-announcement-approval.herokuapp.com/)
 
-This is for teams where posting to the [#general](https://my.slack.com/messages/general/) channel (often renamed to [#announcements](https://my.slack.com/messages/announcements/)) has been restricted to team owners and/or admins. This would allow a user to have a message posted to the #general channel after getting approval from an admin or another private channel.
+This is for teams where posting to the [#general](https://my.slack.com/messages/general/) channel (often renamed to [#announcements](https://my.slack.com/messages/announcements/)) has been restricted to team owners and/or admins. This would allow a user to have a message posted to the [#general](https://my.slack.com/messages/general/) channel after getting approval from an admin or another private channel.
 
 ## Setup
 
@@ -20,7 +20,7 @@ With no further configuration, the app has been added to your team once its adde
 
 ### Making a request
 
-Anyone can make a request to make an announcement using this slash command, `/announce` followed by your message. All MarkDown and emojis will work as normal and will be passed on as if you had posted the announcement yourself.
+Anyone can make a request to make an announcement using this slash command, `/announce` followed by your message. All Markdown and emojis will work as normal and will be passed on as if you had posted the announcement yourself.
 
 ![Slash command definition](website/static/slash_command.jpg)
 
