@@ -3,7 +3,7 @@ from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST, require_GET
 
-from slacker import OAuth, Slacker
+from slacker import OAuth, Slacker, Error as SlackError
 
 import os
 import json
@@ -315,7 +315,9 @@ def button_callback(request):
     # if not an admin or an owner, and "Admin only approval" is required
     if not (clicker['is_admin'] or clicker['is_owner']) and team.admin_only_approval:
         logger.info("Clicker needs to be an admin and wasn't.")
-        return HttpResponse(status=200)
+        return JsonResponse({'response_type':'ephemeral',
+                             'replace_original':False,
+                             'text':"Sorry, but you're not allowed to approve this message. Ask an administrator to either promote you to an administrator, or to release the restriction."})
 
     # because Heroku takes its damn sweet time re-starting a free web dyno
     # we're going to do a chat.update instead of just responding
