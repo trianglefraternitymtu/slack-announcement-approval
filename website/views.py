@@ -233,12 +233,12 @@ def command(request):
 
         if team.backup_channel:
             backup_name = slack.channels.info(team.backup_channel).body['channel']['name']
-            prompt['actions'].insert({
+            prompt['actions'].insert(1, {
                 'name':'backup',
                 'text':'Divert to #{}'.format(backup_name),
                 'type':'button',
                 'value':'{} {}'.format(user_id, text)
-            }, 1)
+            })
 
         # Make a post to approval_channel with buttons
         slack.chat.post_message(team.approval_channel,
