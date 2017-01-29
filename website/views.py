@@ -206,6 +206,7 @@ def command(request):
 
     user_list = slack.users.list().body['members']
     user_list = [('@{}'.format(c['name']), '<@{}>'.format(c['id'])) for c in user_list]
+    user_list.extend([('@here', '<!here>'), ('@channel', '<!channel>'), ('@everyone', '<!everyone>')])
     for k,v in user_list:
         tagged_text = tagged_text.replace(k,v)
 
@@ -355,6 +356,7 @@ def button_callback(request):
 
     user_list = slack.users.list().body['members']
     user_list = [('@{}'.format(c['name']), '<@{}>'.format(c['id'])) for c in user_list]
+    user_list.extend([('@here', '<!here>'), ('@channel', '<!channel>'), ('@everyone', '<!everyone>')])
     for k,v in user_list:
         tagged_text = tagged_text.replace(k,v)
 
