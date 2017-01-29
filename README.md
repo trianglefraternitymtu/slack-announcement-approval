@@ -1,6 +1,6 @@
 # Announcement Approval for Slack [![Build Status](https://travis-ci.org/raveious/slack-announcement-approval.svg?branch=master)](https://travis-ci.org/raveious/slack-announcement-approval) [![Installs](https://slack-announcement-approval.herokuapp.com/badge/installs)](https://slack-announcement-approval.herokuapp.com/)
 
-This is for teams where posting to the [#general](https://my.slack.com/messages/general/) channel (often renamed to [#announcements](https://my.slack.com/messages/announcements/)) has been restricted to team owners and/or admins. This would allow a user to have a message posted to the [#general](https://my.slack.com/messages/general/) channel after getting approval from an admin or another private channel.
+This is for teams where posting to the [#general][1] channel (often renamed to [#announcements][2] has been restricted to team owners and/or admins. This would allow a user to have a message posted to the [#general][1] channel after getting approval from an admin or another private channel.
 
 ## Setup
 
@@ -42,16 +42,28 @@ If the message was rejected, the individual who make the initial request will ge
 
 If the message was approved, a post will be made automatically to selected channel. The bot will use the icon and real name of the individual who made the request in the first place. This is to show who wanted to make the announcement.
 
+### Diverting the response
+
+By setting the "Backup channel" paramater on the [settings page][3], you can enable a third option to isntead divert the message to the pre-selected channel. This gives the team admins another option to push the message to a lower channel instead of just rejecting it.
+
+![Divert](website/static/divert.jpg)
+
+The diverted post will look exactly the same, as if it approved, just in the selected channel.
+
 ## Configuration
 
 At the configuration page, these are the available settings that can be changed for your Slack team. To get to the configuration page, you simply need to signin with Slack.
 
 Option | Default Value | Description
 :---|:---:|:---:
-Post channel | [#general](https://my.slack.com/messages/general/) or it's replacement | The selected channel that is ultimatly trying to be posted too. This has to be a public channel.
+Post channel | [#general][1] or it's replacement | The selected channel that is ultimatly trying to be posted too. This has to be a public channel.
 Approval channel [1] | The user who added the app to the team | The channel where an post needs approval from. Typically a "Executive Board" kind of channel that is typically private.
 Backup channel | Disabled | Another option is to divert the post to a less important channel, this is the channel it will be diverted too.
 Admin only approval | True | In the channel that the request will be sent to, allow only a team admin to respond. This is for the case where there are both team admins and non-admins in the approval channel.
 Admin only login | True | Only an admin can change these settings. This can be disabled, but requires and team admin or owner to login to disable it.
 
 [1] This list is determined by the user who added the app to the team in the first place. If you have a dummy account to just hold authentication tokens, this user would also have to be in the private channel you want to select.
+
+[1]: https://my.slack.com/messages/general/ "#general"
+[2]: https://my.slack.com/messages/announcements/ "#announcements"
+[3]: https://slack.com/oauth/authorize?scope=identity.basic,identity.team&client_id=19225015925.110455013810&state=resumeSignIn "signin"
