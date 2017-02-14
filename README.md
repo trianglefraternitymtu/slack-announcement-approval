@@ -24,6 +24,7 @@ Anyone can make a request to make an announcement using this slash command, `/an
 
 ![Slash command definition](website/static/slash_command.jpg)
 
+
 ### Handling a request
 
 In the selected channel to post the requests for approval, a message like this one will be posted. These buttons are interactable and simply clicking `Approve` or `Reject`.
