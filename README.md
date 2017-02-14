@@ -24,6 +24,7 @@ Anyone can make a request to make an announcement using this slash command, `/an
 
 ![Slash command definition](website/static/slash_command.jpg)
 
+Due to the fact that Slack bots are able to use `@here`, `@channel` and `@everyone` regardless of team settings, adding them to your message will work as normal and will trigger the appropriate notification in the channel it gets posted to. Simply add the correct string, as if you can use it normally and even if it doesn't show up in your quick select popup, it will still work as if you could normally.
 
 ### Handling a request
 
