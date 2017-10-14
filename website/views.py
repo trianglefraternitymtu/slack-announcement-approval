@@ -394,14 +394,14 @@ def button_callback(request):
             post_response['channel'] = team.post_channel
             post_response['username'] = requester['profile']['real_name']
             post_response['icon_url'] = requester['profile']['image_192']
-            post_response['text'] = org_msg['text']
+            post_response['text'] = org_msg['attachments'][0]['text']
             post_response['as_user'] = False
 
         elif action['name'] == 'divert_channel':
             post_response['channel'] = divert_channel_id
             post_response['username'] = requester['profile']['real_name']
             post_response['icon_url'] = requester['profile']['image_192']
-            post_response['text'] = org_msg['text']
+            post_response['text'] = org_msg['attachments'][0]['text']
             post_response['as_user'] = False
 
         elif action['name'] == 'reject':
