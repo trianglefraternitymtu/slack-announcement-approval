@@ -2,14 +2,17 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST, require_GET
+from django.core.exceptions import ObjectDoesNotExist
 
 from slacker import OAuth, Slacker, Error as SlackError
+from datetime import datetime, timedelta
+from time import mktime
 
 import os
 import json
 import logging
 
-from .models import Team
+from .models import Team, UserBlock
 from .forms import TeamSettingsForm
 from . import verified_token, error_msg, signin_link, badge_link
 
@@ -106,7 +109,6 @@ def auth(request):
                                          defaults={'access_token':access_token,
                                                    'approval_channel':user_id,
                                                    'post_channel':general['id'],
-                                                   'backup_channel':None,
                                                    'last_edit':user_id})
             logger.info("Team added to database!")
         except Exception as e:
@@ -179,6 +181,9 @@ def command(request):
     user_id = request.POST.get('user_id')
     text = request.POST.get('text')
 
+    # Delete old blocks
+    UserBlock.objects.filter(until__lte=datetime.now()).delete()
+
     # Pull this teams data out of the DB
     try:
         logger.debug("Getting data for \"{}\" out of the database".format(team_id))
@@ -188,6 +193,19 @@ def command(request):
         return JsonResponse(error_msg("Failed to import team data from DB."))
 
     logger.info("Team data loaded for " + team_id)
+
+    try:
+        blocks = UserBlock.objects.get(team_id=team, user=user_id)
+        block_time = int(mktime(blocks.until.timetuple()))
+        return JsonResponse({
+                'text':'Sorry, but it seems that you are not allowed to make any more requests until <!date^{}^{} at {}|later>.'.format(block_time, "{date_short_pretty}", "{time}"),
+                'response_type':'ephemeral'
+               })
+    except ObjectDoesNotExist:
+        pass
+    except Exception as e:
+        logger.exception(e)
+        return JsonResponse(error_msg("Failed to load blocked users from DB."))
 
     try:
         slack = Slacker(team.access_token)
@@ -222,24 +240,37 @@ def command(request):
                 'text':'Approve',
                 'style':'primary',
                 'type':'button',
-                'value':'{} {}'.format(user_id, text)
+            }, {
+                'name':'divert_channel',
+                'text':'Divert this message to ...',
+                'type':'select',
+                'data_source':'channels'
             }, {
                 'name':'reject',
-                'text':'Reject',
+                'text':'Reject with ...',
                 'style':'danger',
-                'type':'button',
-                'value':'{} {}'.format(user_id, text)
+                'type':'select',
+                'options': [{
+                    'text':'no block',
+                    'value':'0'
+                }, {
+                    'text':'30 min block',
+                    'value':'30'
+                }, {
+                    'text':'2 hour block',
+                    'value':'120'
+                }, {
+                    'text':'6 hour block',
+                    'value':'360'
+                }, {
+                    'text':'12 hour block',
+                    'value':'720'
+                }, {
+                    'text':'24 hour block',
+                    'value':'1440'
+                }]
             }]
         }
-
-        if team.backup_channel:
-            backup_name = slack.channels.info(team.backup_channel).body['channel']['name']
-            prompt['actions'].insert(1, {
-                'name':'backup',
-                'text':'Divert to #{}'.format(backup_name),
-                'type':'button',
-                'value':'{} {}'.format(user_id, text)
-            })
 
         # Make a post to approval_channel with buttons
         slack.chat.post_message(team.approval_channel,
@@ -279,6 +310,12 @@ def button_callback(request):
     if not verified_token(token):
         logger.warning("Token verification failed. ({})".format(token))
         return HttpResponse(status=401)
+    elif "HTTP_X_SLACK_RETRY_NUM" in request.META:
+        logger.info("Received a retry request.")
+        if request.META["HTTP_X_SLACK_RETRY_REASON"] != "http_timeout":
+            logger.warning('Reason for retry was "{}"'.format(request.META["HTTP_X_SLACK_RETRY_REASON"]))
+
+        return HttpResponse(status=200)
 
     team_id = payload['team']['id']
     clicker = payload['user']['id']
@@ -287,13 +324,13 @@ def button_callback(request):
     click_ts = payload['action_ts']
     msg_ts = payload['message_ts']
     org_channel = payload['channel']['id']
-
-    action['value'] = action['value'].split(' ', 1)
+    requester_id = payload['callback_id']
 
     logger.debug(team_id)
     logger.debug(clicker)
     logger.debug(action)
     logger.debug(org_msg)
+    logger.debug(requester_id)
 
     # Pull this teams data out of the DB
     try:
@@ -307,7 +344,7 @@ def button_callback(request):
     try:
         slack = Slacker(team.access_token)
         clicker = slack.users.info(clicker).body['user']
-        requester = slack.users.info(action['value'][0]).body['user']
+        requester = slack.users.info(requester_id).body['user']
         logger.info("Slack API interfaced")
     except Exception as e:
         logger.exception(e)
@@ -319,17 +356,21 @@ def button_callback(request):
         return JsonResponse({'response_type':'ephemeral',
                              'replace_original':False,
                              'text':"Sorry, but you're not allowed to approve this message. Ask an administrator to either promote you to an administrator, or to release the restriction."})
+    else:
+        logger.info("Admin was not required to approve this post.")
 
     # because Heroku takes its damn sweet time re-starting a free web dyno
     # we're going to do a chat.update instead of just responding
+
 
     # Update the message
     if action['name'] == 'approve':
         org_msg['attachments'][0]['footer'] = ":ok_hand: <@{}> approved this message.".format(clicker['id'])
     elif action['name'] == 'reject':
         org_msg['attachments'][0]['footer'] = ":no_entry_sign: <@{}> rejected this message.".format(clicker['id'])
-    elif action['name'] == 'backup':
-        org_msg['attachments'][0]['footer'] = ":arrow_heading_down: <@{}> diverted this message to <#{}>.".format(clicker['id'], team.backup_channel)
+    elif action['name'] == 'divert_channel':
+        divert_channel_id = action['selected_options'][0]['value']
+        org_msg['attachments'][0]['footer'] = ":arrow_heading_down: <@{}> diverted this message to <#{}>.".format(clicker['id'], divert_channel_id)
     else:
         return HttpResponse(status=401)
 
@@ -346,20 +387,6 @@ def button_callback(request):
         logger.exception(e)
         return JsonResponse(error_msg("Something bad happened while posting an update."))
 
-    # TODO remove this when this included into slacker main
-    tagged_text = action['value'][1]
-
-    ch_list = slack.channels.list().body['channels']
-    ch_list = [('#{}'.format(c['name']), '<#{}>'.format(c['id'])) for c in ch_list]
-    for k,v in ch_list:
-        tagged_text = tagged_text.replace(k,v)
-
-    user_list = slack.users.list().body['members']
-    user_list = [('@{}'.format(c['name']), '<@{}>'.format(c['id'])) for c in user_list]
-    user_list.extend([('@here', '<!here>'), ('@channel', '<!channel>'), ('@everyone', '<!everyone>')])
-    for k,v in user_list:
-        tagged_text = tagged_text.replace(k,v)
-
     # Push approved or rejected announcement out
     try:
         post_response = {}
@@ -367,21 +394,21 @@ def button_callback(request):
             post_response['channel'] = team.post_channel
             post_response['username'] = requester['profile']['real_name']
             post_response['icon_url'] = requester['profile']['image_192']
-            post_response['text'] = tagged_text
+            post_response['text'] = org_msg['attachments'][0]['text']
             post_response['as_user'] = False
 
-        elif action['name'] == 'backup':
-            post_response['channel'] = team.backup_channel
+        elif action['name'] == 'divert_channel':
+            post_response['channel'] = divert_channel_id
             post_response['username'] = requester['profile']['real_name']
             post_response['icon_url'] = requester['profile']['image_192']
-            post_response['text'] = tagged_text
+            post_response['text'] = org_msg['attachments'][0]['text']
             post_response['as_user'] = False
 
         elif action['name'] == 'reject':
             post_response['text'] = 'Your announcement request has been rejected.'
-            post_response['channel'] = action['value'][0]
+            post_response['channel'] = requester_id
             post_response['attachments'] = [{
-                    'text':tagged_text,
+                    'text':org_msg['attachments'][0]['text'],
                     'pretext':'Message body:',
                     'fallback':'<@{}> has rejected your post <#{}>'.format(clicker['id'], team.post_channel),
                     'mrkdwn_in':['text'],
@@ -399,5 +426,19 @@ def button_callback(request):
     except Exception as e:
         logger.exception(e)
         return JsonResponse(error_msg("Failed to post announcement."))
+
+    if action['name'] == 'reject':
+        try:
+            td = timedelta(minutes=int(action['selected_options'][0]['value']))
+            block_until = datetime.now() + td
+            block, created = UserBlock.objects.update_or_create(
+                                        team_id=team,
+                                        user=requester_id,
+                                        defaults={'until':block_until})
+            logger.info("{} block placed on {}".format(
+                        action['selected_options'][0]['value'], requester_id))
+        except Exception as e:
+            logger.exception(e)
+            return JsonResponse(error_msg("Failed to put temporary block in place."))
 
     return HttpResponse(status=200)
