@@ -184,8 +184,18 @@ def command(request):
     # Delete old blocks
     UserBlock.objects.filter(until__lte=datetime.now()).delete()
 
+    # Pull this teams data out of the DB
     try:
-        blocks = UserBlock.objects.get(team_id=team_id, user=user_id)
+        logger.debug("Getting data for \"{}\" out of the database".format(team_id))
+        team = Team.objects.get(team_id=team_id)
+    except Exception as e:
+        logger.exception(e)
+        return JsonResponse(error_msg("Failed to import team data from DB."))
+
+    logger.info("Team data loaded for " + team_id)
+
+    try:
+        blocks = UserBlock.objects.get(team_id=team, user=user_id)
         block_time = mktime(blocks.until.timetuple())
         return JsonResponse({
                 'text':'Sorry, but it seems that you are not allowed to make any more requests until <!date^{}^{date_short} at {time}|later>.'.format(block_time),
@@ -196,16 +206,6 @@ def command(request):
     except Exception as e:
         logger.exception(e)
         return JsonResponse(error_msg("Failed to load blocked users from DB."))
-
-    # Pull this teams data out of the DB
-    try:
-        logger.debug("Getting data for \"{}\" out of the database".format(team_id))
-        team = Team.objects.get(team_id=team_id)
-    except Exception as e:
-        logger.exception(e)
-        return JsonResponse(error_msg("Failed to import team data from DB."))
-
-    logger.info("Team data loaded for " + team_id)
 
     try:
         slack = Slacker(team.access_token)
@@ -408,7 +408,7 @@ def button_callback(request):
             post_response['text'] = 'Your announcement request has been rejected.'
             post_response['channel'] = requester_id
             post_response['attachments'] = [{
-                    'text':org_msg['text'],
+                    'text':org_msg['attachments'][0]['text'],
                     'pretext':'Message body:',
                     'fallback':'<@{}> has rejected your post <#{}>'.format(clicker['id'], team.post_channel),
                     'mrkdwn_in':['text'],
@@ -432,7 +432,7 @@ def button_callback(request):
             td = timedelta(minutes=int(action['selected_options'][0]['value']))
             block_until = datetime.now() + td
             block, created = UserBlock.objects.update_or_create(
-                                        team_id=team_id,
+                                        team_id=team,
                                         user=requester_id,
                                         defaults={'until':block_until})
             logger.info("{} block placed on {}".format(
