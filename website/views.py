@@ -106,7 +106,6 @@ def auth(request):
                                          defaults={'access_token':access_token,
                                                    'approval_channel':user_id,
                                                    'post_channel':general['id'],
-                                                   'backup_channel':None,
                                                    'last_edit':user_id})
             logger.info("Team added to database!")
         except Exception as e:
@@ -224,6 +223,11 @@ def command(request):
                 'type':'button',
                 'value':'{} {}'.format(user_id, text)
             }, {
+                'name':'divert_channel',
+                'text':'Select a channel to divert this message too.',
+                'type':'select',
+                'data_source':'channels'
+            }, {
                 'name':'reject',
                 'text':'Reject',
                 'style':'danger',
@@ -231,15 +235,6 @@ def command(request):
                 'value':'{} {}'.format(user_id, text)
             }]
         }
-
-        if team.backup_channel:
-            backup_name = slack.channels.info(team.backup_channel).body['channel']['name']
-            prompt['actions'].insert(1, {
-                'name':'backup',
-                'text':'Divert to #{}'.format(backup_name),
-                'type':'button',
-                'value':'{} {}'.format(user_id, text)
-            })
 
         # Make a post to approval_channel with buttons
         slack.chat.post_message(team.approval_channel,
@@ -287,13 +282,13 @@ def button_callback(request):
     click_ts = payload['action_ts']
     msg_ts = payload['message_ts']
     org_channel = payload['channel']['id']
-
-    action['value'] = action['value'].split(' ', 1)
+    requester_id = payload['callback_id']
 
     logger.debug(team_id)
     logger.debug(clicker)
     logger.debug(action)
     logger.debug(org_msg)
+    logger.debug(requester_id)
 
     # Pull this teams data out of the DB
     try:
@@ -307,7 +302,7 @@ def button_callback(request):
     try:
         slack = Slacker(team.access_token)
         clicker = slack.users.info(clicker).body['user']
-        requester = slack.users.info(action['value'][0]).body['user']
+        requester = slack.users.info(requester_id).body['user']
         logger.info("Slack API interfaced")
     except Exception as e:
         logger.exception(e)
@@ -328,8 +323,8 @@ def button_callback(request):
         org_msg['attachments'][0]['footer'] = ":ok_hand: <@{}> approved this message.".format(clicker['id'])
     elif action['name'] == 'reject':
         org_msg['attachments'][0]['footer'] = ":no_entry_sign: <@{}> rejected this message.".format(clicker['id'])
-    elif action['name'] == 'backup':
-        org_msg['attachments'][0]['footer'] = ":arrow_heading_down: <@{}> diverted this message to <#{}>.".format(clicker['id'], team.backup_channel)
+    elif action['name'] == 'divert_channel':
+        org_msg['attachments'][0]['footer'] = ":arrow_heading_down: <@{}> diverted this message to <#{}>.".format(clicker['id'], action['selected_options']['value'])
     else:
         return HttpResponse(status=401)
 
@@ -346,20 +341,6 @@ def button_callback(request):
         logger.exception(e)
         return JsonResponse(error_msg("Something bad happened while posting an update."))
 
-    # TODO remove this when this included into slacker main
-    tagged_text = action['value'][1]
-
-    ch_list = slack.channels.list().body['channels']
-    ch_list = [('#{}'.format(c['name']), '<#{}>'.format(c['id'])) for c in ch_list]
-    for k,v in ch_list:
-        tagged_text = tagged_text.replace(k,v)
-
-    user_list = slack.users.list().body['members']
-    user_list = [('@{}'.format(c['name']), '<@{}>'.format(c['id'])) for c in user_list]
-    user_list.extend([('@here', '<!here>'), ('@channel', '<!channel>'), ('@everyone', '<!everyone>')])
-    for k,v in user_list:
-        tagged_text = tagged_text.replace(k,v)
-
     # Push approved or rejected announcement out
     try:
         post_response = {}
@@ -367,21 +348,21 @@ def button_callback(request):
             post_response['channel'] = team.post_channel
             post_response['username'] = requester['profile']['real_name']
             post_response['icon_url'] = requester['profile']['image_192']
-            post_response['text'] = tagged_text
+            post_response['text'] = org_msg['text']
             post_response['as_user'] = False
 
-        elif action['name'] == 'backup':
-            post_response['channel'] = team.backup_channel
+        elif action['name'] == 'divert_channel':
+            post_response['channel'] = action['selected_options']['value']
             post_response['username'] = requester['profile']['real_name']
             post_response['icon_url'] = requester['profile']['image_192']
-            post_response['text'] = tagged_text
+            post_response['text'] = org_msg['text']
             post_response['as_user'] = False
 
         elif action['name'] == 'reject':
             post_response['text'] = 'Your announcement request has been rejected.'
-            post_response['channel'] = action['value'][0]
+            post_response['channel'] = requester_id
             post_response['attachments'] = [{
-                    'text':tagged_text,
+                    'text':org_msg['text'],
                     'pretext':'Message body:',
                     'fallback':'<@{}> has rejected your post <#{}>'.format(clicker['id'], team.post_channel),
                     'mrkdwn_in':['text'],
