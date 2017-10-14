@@ -221,7 +221,6 @@ def command(request):
                 'text':'Approve',
                 'style':'primary',
                 'type':'button',
-                'value':'{} {}'.format(user_id, text)
             }, {
                 'name':'divert_channel',
                 'text':'Select a channel to divert this message too.',
@@ -232,7 +231,6 @@ def command(request):
                 'text':'Reject',
                 'style':'danger',
                 'type':'button',
-                'value':'{} {}'.format(user_id, text)
             }]
         }
 
@@ -274,6 +272,12 @@ def button_callback(request):
     if not verified_token(token):
         logger.warning("Token verification failed. ({})".format(token))
         return HttpResponse(status=401)
+    elif "HTTP_X_SLACK_RETRY_NUM" in request.META:
+        logger.info("Received a retry request.")
+        if request.META["HTTP_X_SLACK_RETRY_REASON"] != "http_timeout":
+            logger.warning('Reason for retry was "{}"'.format(request.META["HTTP_X_SLACK_RETRY_REASON"]))
+
+        return HttpResponse(status=200)
 
     team_id = payload['team']['id']
     clicker = payload['user']['id']
@@ -314,6 +318,8 @@ def button_callback(request):
         return JsonResponse({'response_type':'ephemeral',
                              'replace_original':False,
                              'text':"Sorry, but you're not allowed to approve this message. Ask an administrator to either promote you to an administrator, or to release the restriction."})
+    else:
+        logger.info("Admin was not required to approve this post.")
 
     # because Heroku takes its damn sweet time re-starting a free web dyno
     # we're going to do a chat.update instead of just responding
@@ -324,7 +330,7 @@ def button_callback(request):
     elif action['name'] == 'reject':
         org_msg['attachments'][0]['footer'] = ":no_entry_sign: <@{}> rejected this message.".format(clicker['id'])
     elif action['name'] == 'divert_channel':
-        org_msg['attachments'][0]['footer'] = ":arrow_heading_down: <@{}> diverted this message to <#{}>.".format(clicker['id'], action['selected_options']['value'])
+        org_msg['attachments'][0]['footer'] = ":arrow_heading_down: <@{}> diverted this message to <#{}>.".format(clicker['id'], action['selected_options'][0]['value'])
     else:
         return HttpResponse(status=401)
 
