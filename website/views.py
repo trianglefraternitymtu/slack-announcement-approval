@@ -196,7 +196,7 @@ def command(request):
 
     try:
         blocks = UserBlock.objects.get(team_id=team, user=user_id)
-        block_time = mktime(blocks.until.timetuple())
+        block_time = int(mktime(blocks.until.timetuple()))
         return JsonResponse({
                 'text':'Sorry, but it seems that you are not allowed to make any more requests until <!date^{}^{} at {}|later>.'.format(block_time, "{date_short_pretty}", "{time}"),
                 'response_type':'ephemeral'
