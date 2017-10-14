@@ -324,13 +324,15 @@ def button_callback(request):
     # because Heroku takes its damn sweet time re-starting a free web dyno
     # we're going to do a chat.update instead of just responding
 
+    divert_channel_id = action['selected_options'][0]['value']
+
     # Update the message
     if action['name'] == 'approve':
         org_msg['attachments'][0]['footer'] = ":ok_hand: <@{}> approved this message.".format(clicker['id'])
     elif action['name'] == 'reject':
         org_msg['attachments'][0]['footer'] = ":no_entry_sign: <@{}> rejected this message.".format(clicker['id'])
     elif action['name'] == 'divert_channel':
-        org_msg['attachments'][0]['footer'] = ":arrow_heading_down: <@{}> diverted this message to <#{}>.".format(clicker['id'], action['selected_options'][0]['value'])
+        org_msg['attachments'][0]['footer'] = ":arrow_heading_down: <@{}> diverted this message to <#{}>.".format(clicker['id'], divert_channel_id)
     else:
         return HttpResponse(status=401)
 
@@ -358,7 +360,7 @@ def button_callback(request):
             post_response['as_user'] = False
 
         elif action['name'] == 'divert_channel':
-            post_response['channel'] = action['selected_options']['value']
+            post_response['channel'] = divert_channel_id
             post_response['username'] = requester['profile']['real_name']
             post_response['icon_url'] = requester['profile']['image_192']
             post_response['text'] = org_msg['text']
