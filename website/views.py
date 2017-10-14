@@ -429,7 +429,7 @@ def button_callback(request):
 
     if action['name'] == 'reject':
         try:
-            td = timedelta(mintues=int(action['selected_options'][0]['value']))
+            td = timedelta(minutes=int(action['selected_options'][0]['value']))
             block_until = datetime.now() + td
             block, created = UserBlock.objects.update_or_create(
                                         team_id=team_id,
