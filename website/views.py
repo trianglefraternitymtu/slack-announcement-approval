@@ -2,14 +2,17 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST, require_GET
+from django.core.exceptions import ObjectDoesNotExist
 
 from slacker import OAuth, Slacker, Error as SlackError
+from datetime import datetime, timedelta
+from time import mktime
 
 import os
 import json
 import logging
 
-from .models import Team
+from .models import Team, UserBlock
 from .forms import TeamSettingsForm
 from . import verified_token, error_msg, signin_link, badge_link
 
@@ -178,6 +181,22 @@ def command(request):
     user_id = request.POST.get('user_id')
     text = request.POST.get('text')
 
+    # Delete old blocks
+    UserBlock.objects.filter(until__lte=datetime.now()).delete()
+
+    try:
+        blocks = UserBlock.objects.get(team_id=team_id, user=user_id)
+        block_time = mktime(blocks.until.timetuple())
+        return JsonResponse({
+                'text':'Sorry, but it seems that you are not allowed to make any more requests until <!date^{}^{date_short} at {time}|later>.'.format(block_time),
+                'response_type':'ephemeral'
+               })
+    except ObjectDoesNotExist:
+        pass
+    except Exception as e:
+        logger.exception(e)
+        return JsonResponse(error_msg("Failed to load blocked users from DB."))
+
     # Pull this teams data out of the DB
     try:
         logger.debug("Getting data for \"{}\" out of the database".format(team_id))
@@ -223,14 +242,33 @@ def command(request):
                 'type':'button',
             }, {
                 'name':'divert_channel',
-                'text':'Select a channel to divert this message too.',
+                'text':'Divert this message to ...',
                 'type':'select',
                 'data_source':'channels'
             }, {
                 'name':'reject',
-                'text':'Reject',
+                'text':'Reject with ...',
                 'style':'danger',
-                'type':'button',
+                'type':'select',
+                'options': [{
+                    'text':'no block',
+                    'value':'0'
+                }, {
+                    'text':'30 min block',
+                    'value':'30'
+                }, {
+                    'text':'2 hour block',
+                    'value':'120'
+                }, {
+                    'text':'6 hour block',
+                    'value':'360'
+                }, {
+                    'text':'12 hour block',
+                    'value':'720'
+                }, {
+                    'text':'24 hour block',
+                    'value':'1440'
+                }]
             }]
         }
 
@@ -324,7 +362,6 @@ def button_callback(request):
     # because Heroku takes its damn sweet time re-starting a free web dyno
     # we're going to do a chat.update instead of just responding
 
-    divert_channel_id = action['selected_options'][0]['value']
 
     # Update the message
     if action['name'] == 'approve':
@@ -332,6 +369,7 @@ def button_callback(request):
     elif action['name'] == 'reject':
         org_msg['attachments'][0]['footer'] = ":no_entry_sign: <@{}> rejected this message.".format(clicker['id'])
     elif action['name'] == 'divert_channel':
+        divert_channel_id = action['selected_options'][0]['value']
         org_msg['attachments'][0]['footer'] = ":arrow_heading_down: <@{}> diverted this message to <#{}>.".format(clicker['id'], divert_channel_id)
     else:
         return HttpResponse(status=401)
@@ -388,5 +426,19 @@ def button_callback(request):
     except Exception as e:
         logger.exception(e)
         return JsonResponse(error_msg("Failed to post announcement."))
+
+    if action['name'] == 'reject':
+        try:
+            td = timedelta(mintues=int(action['selected_options'][0]['value']))
+            block_until = datetime.now() + td
+            block, created = UserBlock.objects.update_or_create(
+                                        team_id=team_id,
+                                        user=requester_id,
+                                        defaults={'until':block_until})
+            logger.info("{} block placed on {}".format(
+                        action['selected_options'][0]['value'], requester_id))
+        except Exception as e:
+            logger.exception(e)
+            return JsonResponse(error_msg("Failed to put temporary block in place."))
 
     return HttpResponse(status=200)

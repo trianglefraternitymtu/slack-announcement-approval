@@ -8,3 +8,8 @@ class Team(models.Model):
     last_edit = models.CharField(max_length=21, default=None)
     admin_only_approval = models.BooleanField(default=True)
     admin_only_edit = models.BooleanField(default=True)
+
+class UserBlock(models.Model):
+    team_id = models.ForeignKey(Team, on_delete=models.CASCADE)
+    user = models.CharField(max_length=21)
+    until = models.DateTimeField()
