@@ -198,7 +198,7 @@ def command(request):
         blocks = UserBlock.objects.get(team_id=team, user=user_id)
         block_time = mktime(blocks.until.timetuple())
         return JsonResponse({
-                'text':'Sorry, but it seems that you are not allowed to make any more requests until <!date^{}^{date_short} at {time}|later>.'.format(block_time),
+                'text':'Sorry, but it seems that you are not allowed to make any more requests until <!date^{}^{} at {}|later>.'.format(block_time, "date_short", "time"),
                 'response_type':'ephemeral'
                })
     except ObjectDoesNotExist:
