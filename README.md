@@ -1,4 +1,4 @@
-# Announcement Approval for Slack [![Build Status](https://travis-ci.org/raveious/slack-announcement-approval.svg?branch=master)](https://travis-ci.org/raveious/slack-announcement-approval) [![Installs](https://slack-announcement-approval.herokuapp.com/badge/installs)](https://slack-announcement-approval.herokuapp.com/)
+# Announcement Approval for Slack [![Build Status](https://travis-ci.org/trianglefraternitymtu/slack-announcement-approval.svg?branch=master)](https://travis-ci.org/trianglefraternitymtu/slack-announcement-approval) [![Installs](https://slack-announcement-approval.herokuapp.com/badge/installs)](https://slack-announcement-approval.herokuapp.com/)
 
 This is for teams where posting to the [#general][1] channel (often renamed to [#announcements][2] has been restricted to team owners and/or admins. This would allow a user to have a message posted to the [#general][1] channel after getting approval from an admin or another private channel.
 
