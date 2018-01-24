@@ -1,4 +1,4 @@
-# Announcement Approval for Slack [![Build Status](https://travis-ci.org/raveious/slack-announcement-approval.svg?branch=master)](https://travis-ci.org/raveious/slack-announcement-approval) [![Installs](https://slack-announcement-approval.herokuapp.com/badge/installs)](https://slack-announcement-approval.herokuapp.com/)
+# Announcement Approval for Slack [![Build Status](https://travis-ci.org/trianglefraternitymtu/slack-announcement-approval.svg?branch=master)](https://travis-ci.org/trianglefraternitymtu/slack-announcement-approval) [![Installs](https://slack-announcement-approval.herokuapp.com/badge/installs)](https://slack-announcement-approval.herokuapp.com/)
 
 This is for teams where posting to the [#general][1] channel (often renamed to [#announcements][2] has been restricted to team owners and/or admins. This would allow a user to have a message posted to the [#general][1] channel after getting approval from an admin or another private channel.
 
@@ -38,7 +38,7 @@ Once the post has been approved or rejected, the prompt will update to record wh
 
 ### Processed response
 
-If the message was rejected, the individual who make the initial request will get this message to inform them that their announcement won't be made. This message will be a direct message from `@slackbot`
+If the message was rejected, the individual who make the initial request will get this message to inform them that their announcement won't be made. This message will be a direct message from `@slackbot`. Furthermore, you have the option to block the user from making another request for some duration of time by selecting the time from the menu.
 
 ![Rejected](website/static/rejected.jpg)
 
@@ -46,9 +46,7 @@ If the message was approved, a post will be made automatically to selected chann
 
 ### Diverting the response
 
-By setting the "Backup channel" paramater on the [settings page][3], you can enable a third option to isntead divert the message to the pre-selected channel. This gives the team admins another option to push the message to a lower channel instead of just rejecting it.
-
-![Divert](website/static/divert.jpg)
+There is a menu with all the channels in it to give you the choice to divert the message to any channel in the list. This gives the team admins another option to push the message to a lower channel instead of just rejecting it.
 
 The diverted post will look exactly the same, as if it approved, just in the selected channel.
 
